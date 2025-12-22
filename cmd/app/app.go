@@ -2,15 +2,15 @@ package app
 
 import (
 	"database/sql"
-	"net/http"
 
 	"github.com/johnal95/workouts-pwa/cmd/api"
+	"github.com/johnal95/workouts-pwa/cmd/middleware"
 	"github.com/johnal95/workouts-pwa/cmd/store"
 	"github.com/johnal95/workouts-pwa/migrations"
 )
 
 type Application struct {
-	StaticHandler  http.Handler
+	AuthMiddleware *middleware.AuthMiddleware
 	WorkoutHandler *api.WorkoutHandler
 	DB             *sql.DB
 }
@@ -40,7 +40,10 @@ func NewApplication(options *ApplicationOptions) (*Application, error) {
 
 	workoutHandler := api.NewWorkoutHandler(workoutStore)
 
+	authMiddleware := middleware.NewAuthMiddleware()
+
 	return &Application{
+		AuthMiddleware: authMiddleware,
 		WorkoutHandler: workoutHandler,
 		DB:             pgDB,
 	}, nil

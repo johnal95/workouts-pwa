@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/johnal95/workouts-pwa/cmd/requestcontext"
 	"github.com/johnal95/workouts-pwa/cmd/store"
 )
 
@@ -19,7 +20,9 @@ func NewWorkoutHandler(workoutStore store.WorkoutStore) *WorkoutHandler {
 }
 
 func (h *WorkoutHandler) GetWorkouts(w http.ResponseWriter, r *http.Request) {
-	workouts, err := h.workoutStore.FindAll("019b4388-50ee-7f94-9caf-a8ceb54ef056")
+	user := requestcontext.GetUser(r)
+
+	workouts, err := h.workoutStore.FindAll(user.Id)
 	if err != nil {
 		slog.Error("failed to retrieve user workouts.", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -27,17 +30,14 @@ func (h *WorkoutHandler) GetWorkouts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(workouts)
-	if err != nil {
-		slog.Error("failed to write user workouts.", "error", err)
-	}
+	WriteJSON(w, http.StatusOK, workouts)
 }
 
 func (h *WorkoutHandler) GetWorkoutDetails(w http.ResponseWriter, r *http.Request) {
+	user := requestcontext.GetUser(r)
 	workoutId := r.PathValue("workoutId")
 
-	workout, err := h.workoutStore.FindById("019b4388-50ee-7f94-9caf-a8ceb54ef056", workoutId)
+	workout, err := h.workoutStore.FindById(user.Id, workoutId)
 	if err != nil {
 		slog.Error("failed to retrieve user workouts.", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -45,18 +45,16 @@ func (h *WorkoutHandler) GetWorkoutDetails(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(workout)
-	if err != nil {
-		slog.Error("failed to write user workouts.", "error", err)
-	}
+	WriteJSON(w, http.StatusOK, workout)
 }
 
 func (h *WorkoutHandler) CreateWorkout(w http.ResponseWriter, r *http.Request) {
+	user := requestcontext.GetUser(r)
+
 	var workout store.Workout
 	json.NewDecoder(r.Body).Decode(&workout)
 
-	newWorkout, err := h.workoutStore.Create("019b4388-50ee-7f94-9caf-a8ceb54ef056", &workout)
+	newWorkout, err := h.workoutStore.Create(user.Id, &workout)
 	if err != nil {
 		slog.Error("failed to create new user workout.", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -64,9 +62,5 @@ func (h *WorkoutHandler) CreateWorkout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(newWorkout)
-	if err != nil {
-		slog.Error("failed to write user workout after creation.", "error", err)
-	}
+	WriteJSON(w, http.StatusCreated, newWorkout)
 }
