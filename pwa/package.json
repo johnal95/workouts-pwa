@@ -1,0 +1,36 @@
+{
+  "name": "pwa",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "packageManager": "pnpm@10.26.1",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@tanstack/react-devtools": "0.8.4",
+    "@tanstack/react-query": "5.90.12",
+    "@tanstack/react-query-devtools": "5.91.1",
+    "@tanstack/react-router": "1.142.7",
+    "@tanstack/react-router-devtools": "1.142.7",
+    "clsx": "2.1.1",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "4.1.18",
+    "@tanstack/router-plugin": "1.142.7",
+    "@types/node": "24.10.4",
+    "@types/react": "19.2.7",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "5.1.2",
+    "babel-plugin-react-compiler": "1.0.0",
+    "prettier": "3.7.4",
+    "prettier-plugin-tailwindcss": "0.7.2",
+    "tailwindcss": "4.1.18",
+    "typescript": "5.9.3",
+    "vite": "7.3.0"
+  }
+}
