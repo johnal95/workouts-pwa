@@ -8,7 +8,10 @@ import (
 	"net/http"
 
 	"github.com/johnal95/workouts-pwa/cmd/app"
+	"github.com/johnal95/workouts-pwa/cmd/config"
 	"github.com/johnal95/workouts-pwa/cmd/routes"
+
+	_ "github.com/joho/godotenv/autoload"
 )
 
 type ProgramArgs struct {
@@ -21,11 +24,9 @@ func getProgramArgs() *ProgramArgs {
 	flag.IntVar(&port, "port", 8080, "go server port")
 	flag.Parse()
 
-	tempDatabaseURL := "postgres://postgres:postgres@127.0.0.1:5432/devdb"
-
 	return &ProgramArgs{
 		Port:        port,
-		DatabaseURL: tempDatabaseURL,
+		DatabaseURL: config.GetDatabaseURL(),
 	}
 }
 
