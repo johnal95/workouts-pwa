@@ -4,6 +4,19 @@ import (
 	"time"
 )
 
+type AuthProvider string
+
+const (
+	AuthProviderGoogle = AuthProvider("GOOGLE")
+)
+
+type User struct {
+	Id           string       `json:"id"`
+	Email        string       `json:"email"`
+	AuthProvider AuthProvider `json:"-"`
+	AuthId       string       `json:"-"`
+}
+
 type Workout struct {
 	Id        string    `json:"id"`
 	CreatedAt time.Time `json:"created_at"`
