@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"log/slog"
 	"net/http"
 
@@ -20,9 +21,9 @@ func NewWorkoutHandler(workoutStore store.WorkoutStore) *WorkoutHandler {
 }
 
 func (h *WorkoutHandler) GetWorkouts(w http.ResponseWriter, r *http.Request) {
-	user := requestcontext.GetUser(r)
+	userID := *requestcontext.GetUserID(r)
 
-	workouts, err := h.workoutStore.FindAll(user.Id)
+	workouts, err := h.workoutStore.FindAll(userID)
 	if err != nil {
 		slog.Error("failed to retrieve user workouts.", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -34,10 +35,10 @@ func (h *WorkoutHandler) GetWorkouts(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *WorkoutHandler) GetWorkoutDetails(w http.ResponseWriter, r *http.Request) {
-	user := requestcontext.GetUser(r)
+	userID := *requestcontext.GetUserID(r)
 	workoutId := r.PathValue("workoutId")
 
-	workout, err := h.workoutStore.FindById(user.Id, workoutId)
+	workout, err := h.workoutStore.FindById(userID, workoutId)
 	if err != nil {
 		slog.Error("failed to retrieve user workouts.", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -49,12 +50,18 @@ func (h *WorkoutHandler) GetWorkoutDetails(w http.ResponseWriter, r *http.Reques
 }
 
 func (h *WorkoutHandler) CreateWorkout(w http.ResponseWriter, r *http.Request) {
-	user := requestcontext.GetUser(r)
+	userID := *requestcontext.GetUserID(r)
 
 	var workout store.Workout
 	json.NewDecoder(r.Body).Decode(&workout)
 
-	newWorkout, err := h.workoutStore.Create(user.Id, &workout)
+	newWorkout, err := h.workoutStore.Create(userID, &workout)
+	if errors.Is(err, store.ErrUniqueConstraint) {
+		slog.Warn("failed to create new user workout.", "error", err)
+		w.WriteHeader(http.StatusConflict)
+		w.Write([]byte("Conflict"))
+		return
+	}
 	if err != nil {
 		slog.Error("failed to create new user workout.", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)

@@ -1,6 +1,11 @@
 package store
 
-import "database/sql"
+import (
+	"database/sql"
+	"errors"
+
+	"github.com/jackc/pgx/v5/pgconn"
+)
 
 type WorkoutStore interface {
 	FindAll(userId string) ([]Workout, error)
@@ -90,6 +95,10 @@ func (s *PostgresWorkoutStore) Create(userId string, w *Workout) (*Workout, erro
 		&w.Name,
 	)
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return nil, errors.Join(ErrUniqueConstraint, err)
+		}
 		return nil, err
 	}
 	return w, nil

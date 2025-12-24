@@ -3,24 +3,37 @@ package requestcontext
 import (
 	"context"
 	"net/http"
-
-	"github.com/johnal95/workouts-pwa/cmd/store"
 )
 
 type contextKey string
 
-const userContextKey = contextKey("ctx.user")
+const userIDContextKey = contextKey("ctx.user_id")
+const requestIDContextKey = contextKey("ctx.request_id")
 
-func GetUser(r *http.Request) *store.User {
-	user, ok := r.Context().Value(userContextKey).(*store.User)
+func GetUserID(r *http.Request) *string {
+	userID, ok := r.Context().Value(userIDContextKey).(*string)
 	if !ok {
 		return nil
 	}
-	return user
+	return userID
 }
 
-func SetUser(r *http.Request, user *store.User) *http.Request {
+func SetUserID(r *http.Request, userID string) *http.Request {
 	return r.WithContext(
-		context.WithValue(r.Context(), userContextKey, user),
+		context.WithValue(r.Context(), userIDContextKey, &userID),
+	)
+}
+
+func GetRequestID(r *http.Request) *string {
+	requestID, ok := r.Context().Value(requestIDContextKey).(*string)
+	if !ok {
+		return nil
+	}
+	return requestID
+}
+
+func SetRequestID(r *http.Request, requestID string) *http.Request {
+	return r.WithContext(
+		context.WithValue(r.Context(), requestIDContextKey, &requestID),
 	)
 }

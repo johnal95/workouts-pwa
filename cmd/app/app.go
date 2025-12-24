@@ -10,9 +10,10 @@ import (
 )
 
 type Application struct {
-	AuthMiddleware *middleware.AuthMiddleware
-	WorkoutHandler *api.WorkoutHandler
-	DB             *sql.DB
+	AuthMiddleware      *middleware.AuthMiddleware
+	RequestIDMiddleware *middleware.RequestIDMiddleware
+	WorkoutHandler      *api.WorkoutHandler
+	DB                  *sql.DB
 }
 
 type ApplicationOptions struct {
@@ -41,10 +42,12 @@ func NewApplication(options *ApplicationOptions) (*Application, error) {
 	workoutHandler := api.NewWorkoutHandler(workoutStore)
 
 	authMiddleware := middleware.NewAuthMiddleware()
+	requestIDMiddleware := middleware.NewRequestIDMiddleware()
 
 	return &Application{
-		AuthMiddleware: authMiddleware,
-		WorkoutHandler: workoutHandler,
-		DB:             pgDB,
+		AuthMiddleware:      authMiddleware,
+		RequestIDMiddleware: requestIDMiddleware,
+		WorkoutHandler:      workoutHandler,
+		DB:                  pgDB,
 	}, nil
 }
