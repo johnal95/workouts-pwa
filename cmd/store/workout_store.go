@@ -9,8 +9,9 @@ import (
 
 type WorkoutStore interface {
 	FindAll(userId string) ([]Workout, error)
-	FindById(userId string, workoutId string) (*Workout, error)
+	FindById(userId, workoutId string) (*Workout, error)
 	Create(w *Workout) (*Workout, error)
+	Delete(userId, workoutId string) (*Workout, error)
 }
 
 type PostgresWorkoutStore struct {
@@ -23,7 +24,7 @@ func NewPostgresWorkoutStore(db *sql.DB) *PostgresWorkoutStore {
 	}
 }
 
-func (s *PostgresWorkoutStore) FindById(userId string, workoutId string) (*Workout, error) {
+func (s *PostgresWorkoutStore) FindById(userId, workoutId string) (*Workout, error) {
 	var workout Workout
 	err := s.db.QueryRow(`
 		SELECT
@@ -103,4 +104,29 @@ func (s *PostgresWorkoutStore) Create(w *Workout) (*Workout, error) {
 		return nil, err
 	}
 	return w, nil
+}
+
+func (s *PostgresWorkoutStore) Delete(userId, workoutId string) (*Workout, error) {
+	var w Workout
+	err := s.db.QueryRow(`
+		DELETE FROM workouts
+		WHERE user_id = $1
+		AND id = $2
+		RETURNING
+			id, created_at, name
+	`,
+		userId,
+		workoutId,
+	).Scan(
+		&w.Id,
+		&w.CreatedAt,
+		&w.Name,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errors.Join(ErrNotFound, err)
+		}
+		return nil, err
+	}
+	return &w, nil
 }

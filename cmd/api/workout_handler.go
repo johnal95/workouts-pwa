@@ -36,9 +36,9 @@ func (h *WorkoutHandler) GetWorkouts(w http.ResponseWriter, r *http.Request) {
 
 func (h *WorkoutHandler) GetWorkoutDetails(w http.ResponseWriter, r *http.Request) {
 	userID := *requestcontext.GetUserID(r)
-	workoutId := r.PathValue("workoutId")
+	workoutID := r.PathValue("workoutId")
 
-	workout, err := h.workoutStore.FindById(userID, workoutId)
+	workout, err := h.workoutStore.FindById(userID, workoutID)
 	if err != nil {
 		slog.Error("failed to retrieve user workouts.", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -63,13 +63,14 @@ func (h *WorkoutHandler) CreateWorkout(w http.ResponseWriter, r *http.Request) {
 	workout.UserId = userID
 
 	newWorkout, err := h.workoutStore.Create(&workout)
-	if errors.Is(err, store.ErrUniqueConstraint) {
-		slog.Warn("failed to create new user workout.", "error", err)
-		w.WriteHeader(http.StatusConflict)
-		w.Write([]byte("Conflict"))
-		return
-	}
 	if err != nil {
+		if errors.Is(err, store.ErrUniqueConstraint) {
+			slog.Warn("failed to create new user workout.", "error", err)
+			w.WriteHeader(http.StatusConflict)
+			w.Write([]byte("Conflict"))
+			return
+		}
+
 		slog.Error("failed to create new user workout.", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("Internal Server Error"))
@@ -77,4 +78,26 @@ func (h *WorkoutHandler) CreateWorkout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	WriteJSON(w, http.StatusCreated, newWorkout)
+}
+
+func (h *WorkoutHandler) DeleteWorkout(w http.ResponseWriter, r *http.Request) {
+	userID := *requestcontext.GetUserID(r)
+	workoutID := r.PathValue("workoutId")
+
+	workout, err := h.workoutStore.Delete(userID, workoutID)
+	if err != nil {
+		if errors.Is(err, store.ErrNotFound) {
+			slog.Warn("workout not found.", "error", err)
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte("Not Found"))
+			return
+		}
+
+		slog.Error("failed to create new user workout.", "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Internal Server Error"))
+		return
+	}
+
+	WriteJSON(w, http.StatusOK, workout)
 }

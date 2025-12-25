@@ -20,6 +20,7 @@ func SetupRoutesHandler(app *app.Application) *chi.Mux {
 		r.Get("/api/v1/workouts", app.WorkoutHandler.GetWorkouts)
 		r.Get("/api/v1/workouts/{workoutId}", app.WorkoutHandler.GetWorkoutDetails)
 		r.Post("/api/v1/workouts", app.WorkoutHandler.CreateWorkout)
+		r.Delete("/api/v1/workouts/{workoutId}", app.WorkoutHandler.DeleteWorkout)
 	})
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
