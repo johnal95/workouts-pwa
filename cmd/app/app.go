@@ -2,6 +2,7 @@ package app
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/johnal95/workouts-pwa/cmd/api"
 	"github.com/johnal95/workouts-pwa/cmd/middleware"
@@ -32,12 +33,15 @@ func NewApplication(options *ApplicationOptions) (*Application, error) {
 		return nil, err
 	}
 
-	// TEMPORARY USER
+	userStore := store.NewPostgresUserStore(pgDB)
+	workoutStore := store.NewPostgresWorkoutStore(pgDB)
+
+	// TEMPORARY TEST USER
 	pgDB.Query(`DELETE FROM users`)
 	pgDB.Query(`INSERT INTO users (id, email, auth_id, auth_provider) VALUES ($1, $2, $3, $4)`,
 		"019b4388-50ee-7f94-9caf-a8ceb54ef056", "john.doe@gmail.com", "random_auth_id", "GOOGLE")
-
-	workoutStore := store.NewPostgresWorkoutStore(pgDB)
+	usr, _ := userStore.FindById("019b4388-50ee-7f94-9caf-a8ceb54ef056")
+	fmt.Printf("TEST USER:\n%+v\n", *usr)
 
 	workoutHandler := api.NewWorkoutHandler(workoutStore)
 
