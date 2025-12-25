@@ -10,7 +10,7 @@ import (
 type WorkoutStore interface {
 	FindAll(userId string) ([]Workout, error)
 	FindById(userId string, workoutId string) (*Workout, error)
-	Create(userId string, w *Workout) (*Workout, error)
+	Create(w *Workout) (*Workout, error)
 }
 
 type PostgresWorkoutStore struct {
@@ -79,7 +79,7 @@ func (s *PostgresWorkoutStore) FindAll(userId string) ([]Workout, error) {
 	return workouts, nil
 }
 
-func (s *PostgresWorkoutStore) Create(userId string, w *Workout) (*Workout, error) {
+func (s *PostgresWorkoutStore) Create(w *Workout) (*Workout, error) {
 	err := s.db.QueryRow(`
 		INSERT INTO workouts
 			(user_id, name)
@@ -88,7 +88,8 @@ func (s *PostgresWorkoutStore) Create(userId string, w *Workout) (*Workout, erro
 		RETURNING
 			id, created_at, name
 	`,
-		userId, w.Name,
+		w.UserId,
+		w.Name,
 	).Scan(
 		&w.Id,
 		&w.CreatedAt,

@@ -12,6 +12,7 @@ const (
 
 type User struct {
 	Id           string       `json:"id"`
+	CreatedAt    time.Time    `json:"created_at"`
 	Email        string       `json:"email"`
 	AuthProvider AuthProvider `json:"-"`
 	AuthId       string       `json:"-"`
@@ -20,6 +21,7 @@ type User struct {
 type Workout struct {
 	Id        string    `json:"id"`
 	CreatedAt time.Time `json:"created_at"`
+	UserId    string    `json:"-"`
 	Name      string    `json:"name"`
 }
 
@@ -39,6 +41,7 @@ type Exercise struct {
 type ExerciseSetLog struct {
 	Id            string `json:"id"`
 	ExerciseSetId string `json:"exercise_set_id"`
+	Index         int    `json:"index"`
 	Reps          uint   `json:"reps"`
 	Kg            uint   `json:"kg"`
 }

@@ -53,9 +53,16 @@ func (h *WorkoutHandler) CreateWorkout(w http.ResponseWriter, r *http.Request) {
 	userID := *requestcontext.GetUserID(r)
 
 	var workout store.Workout
-	json.NewDecoder(r.Body).Decode(&workout)
+	err := json.NewDecoder(r.Body).Decode(&workout)
+	if err != nil {
+		slog.Warn("invalid request body", "error", err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Bad Request"))
+		return
+	}
+	workout.UserId = userID
 
-	newWorkout, err := h.workoutStore.Create(userID, &workout)
+	newWorkout, err := h.workoutStore.Create(&workout)
 	if errors.Is(err, store.ErrUniqueConstraint) {
 		slog.Warn("failed to create new user workout.", "error", err)
 		w.WriteHeader(http.StatusConflict)
