@@ -9,27 +9,69 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WorkoutsIndexRouteImport } from './routes/workouts.index'
+import { Route as WorkoutsWorkoutIdIndexRouteImport } from './routes/workouts.$workoutId.index'
 
-export interface FileRoutesByFullPath {}
-export interface FileRoutesByTo {}
+const WorkoutsIndexRoute = WorkoutsIndexRouteImport.update({
+  id: '/workouts/',
+  path: '/workouts/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WorkoutsWorkoutIdIndexRoute = WorkoutsWorkoutIdIndexRouteImport.update({
+  id: '/workouts/$workoutId/',
+  path: '/workouts/$workoutId/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+
+export interface FileRoutesByFullPath {
+  '/workouts': typeof WorkoutsIndexRoute
+  '/workouts/$workoutId': typeof WorkoutsWorkoutIdIndexRoute
+}
+export interface FileRoutesByTo {
+  '/workouts': typeof WorkoutsIndexRoute
+  '/workouts/$workoutId': typeof WorkoutsWorkoutIdIndexRoute
+}
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/workouts/': typeof WorkoutsIndexRoute
+  '/workouts/$workoutId/': typeof WorkoutsWorkoutIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: never
+  fullPaths: '/workouts' | '/workouts/$workoutId'
   fileRoutesByTo: FileRoutesByTo
-  to: never
-  id: '__root__'
+  to: '/workouts' | '/workouts/$workoutId'
+  id: '__root__' | '/workouts/' | '/workouts/$workoutId/'
   fileRoutesById: FileRoutesById
 }
-export interface RootRouteChildren {}
-
-declare module '@tanstack/react-router' {
-  interface FileRoutesByPath {}
+export interface RootRouteChildren {
+  WorkoutsIndexRoute: typeof WorkoutsIndexRoute
+  WorkoutsWorkoutIdIndexRoute: typeof WorkoutsWorkoutIdIndexRoute
 }
 
-const rootRouteChildren: RootRouteChildren = {}
+declare module '@tanstack/react-router' {
+  interface FileRoutesByPath {
+    '/workouts/': {
+      id: '/workouts/'
+      path: '/workouts'
+      fullPath: '/workouts'
+      preLoaderRoute: typeof WorkoutsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/workouts/$workoutId/': {
+      id: '/workouts/$workoutId/'
+      path: '/workouts/$workoutId'
+      fullPath: '/workouts/$workoutId'
+      preLoaderRoute: typeof WorkoutsWorkoutIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+  }
+}
+
+const rootRouteChildren: RootRouteChildren = {
+  WorkoutsIndexRoute: WorkoutsIndexRoute,
+  WorkoutsWorkoutIdIndexRoute: WorkoutsWorkoutIdIndexRoute,
+}
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
