@@ -1,0 +1,11 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+
+  "workouts_title": "Workouts",
+  "workouts_card_add_new_cta": "Add Workout",
+  "workouts_add_new_title": "New Workout",
+  "workouts_add_new_name_input_placeholder": "e.g. Leg Day, Chest Day",
+  "workouts_add_new_submit_cta": "Create Workout",
+
+  "modal_close_icon_aria_label": "Close dialog"
+}

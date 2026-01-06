@@ -21,6 +21,7 @@
     "typebox": "1.0.73"
   },
   "devDependencies": {
+    "@inlang/paraglide-js": "2.7.1",
     "@tailwindcss/vite": "4.1.18",
     "@tanstack/router-plugin": "1.142.7",
     "@types/node": "24.10.4",

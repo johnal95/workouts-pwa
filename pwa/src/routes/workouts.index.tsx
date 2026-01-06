@@ -7,6 +7,7 @@ import { Modal } from "../components/modal/modal";
 import { Button } from "../components/buttons/button";
 import { useWorkoutsQuery } from "../hooks/use-workouts-query";
 import { useNewWorkoutMutation } from "../hooks/use-new-workout-mutation";
+import { m } from "../paraglide/messages";
 
 export const Route = createFileRoute("/workouts/")({
     component: RouteComponent,
@@ -40,10 +41,10 @@ function AddWorkoutModalContent({ closeModal }: AddWorkoutModalContentProps) {
                         setWorkoutName(e.target.value);
                     }}
                     className="bg-surface-1 text-content rounded-xl px-4 py-2"
-                    placeholder={"e.g. Leg Day, Chest Day"}
+                    placeholder={m.workouts_add_new_name_input_placeholder()}
                 />
             </label>
-            <Button type="submit">{"Create Workout"}</Button>
+            <Button type="submit">{m.workouts_add_new_submit_cta()}</Button>
         </form>
     );
 }
@@ -70,7 +71,7 @@ function RouteComponent() {
 
     return (
         <div>
-            <TopHeader heading="Workouts" />
+            <TopHeader heading={m.workouts_title()} />
             <div className="flex flex-col gap-4 p-4">
                 {workoutsQuery.data.map((w) => (
                     <NavigationCard
@@ -83,7 +84,7 @@ function RouteComponent() {
                     />
                 ))}
                 <AddCard
-                    text="Add Workout"
+                    text={m.workouts_card_add_new_cta()}
                     onClick={() => {
                         setIsNewWorkoutModalOpen(true);
                     }}
@@ -94,7 +95,7 @@ function RouteComponent() {
                 onClose={() => {
                     setIsNewWorkoutModalOpen(false);
                 }}
-                title="New Workout"
+                title={m.workouts_add_new_title()}
             >
                 <AddWorkoutModalContent
                     closeModal={() => {

@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import React from "react";
 import { createPortal } from "react-dom";
+import { m } from "../../paraglide/messages";
 import { CloseIcon } from "../icons/close-icon";
 
 interface ModalProps {
@@ -39,7 +40,7 @@ export function Modal({ title, isOpen, onClose, children, className }: ModalProp
                 <header className="border-primary-dim/20 grid grid-cols-[1fr_2fr_1fr] border-b p-4">
                     <div>
                         <button type="button" className="cursor-pointer" onClick={onClose}>
-                            <CloseIcon aria-label="Close dialog" className="fill-content" />
+                            <CloseIcon aria-label={m.modal_close_icon_aria_label()} className="fill-content" />
                         </button>
                     </div>
                     <h1 className="justify-self-center font-bold">{title}</h1>
