@@ -8,6 +8,7 @@ import { Button } from "../components/buttons/button";
 import { useWorkoutsQuery } from "../hooks/use-workouts-query";
 import { useNewWorkoutMutation } from "../hooks/use-new-workout-mutation";
 import { m } from "../paraglide/messages";
+import { Input } from "../components/input/input";
 
 export const Route = createFileRoute("/workouts/")({
     component: RouteComponent,
@@ -31,19 +32,15 @@ function AddWorkoutModalContent({ closeModal }: AddWorkoutModalContentProps) {
                 closeModal();
             }}
         >
-            <label className="flex w-full flex-col gap-1">
-                {"Workout Name"}
-                <input
-                    type="text"
-                    name="workout-name"
-                    value={workoutName}
-                    onChange={(e) => {
-                        setWorkoutName(e.target.value);
-                    }}
-                    className="bg-surface-1 text-content rounded-xl px-4 py-2"
-                    placeholder={m.workouts_add_new_name_input_placeholder()}
-                />
-            </label>
+            <Input
+                label={m.workouts_add_new_name_input_label()}
+                name="workout-name"
+                value={workoutName}
+                placeholder={m.workouts_add_new_name_input_placeholder()}
+                onChange={(e) => {
+                    setWorkoutName(e.target.value);
+                }}
+            />
             <Button type="submit">{m.workouts_add_new_submit_cta()}</Button>
         </form>
     );

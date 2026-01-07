@@ -4,6 +4,7 @@
   "workouts_title": "Workouts",
   "workouts_card_add_new_cta": "Add Workout",
   "workouts_add_new_title": "New Workout",
+  "workouts_add_new_name_input_label": "Workout Name",
   "workouts_add_new_name_input_placeholder": "e.g. Leg Day, Chest Day",
   "workouts_add_new_submit_cta": "Create Workout",
 
