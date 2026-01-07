@@ -6,6 +6,7 @@ import (
 
 	"github.com/johnal95/workouts-pwa/cmd/api"
 	"github.com/johnal95/workouts-pwa/cmd/middleware"
+	"github.com/johnal95/workouts-pwa/cmd/service"
 	"github.com/johnal95/workouts-pwa/cmd/store"
 	"github.com/johnal95/workouts-pwa/migrations"
 )
@@ -43,7 +44,9 @@ func NewApplication(options *ApplicationOptions) (*Application, error) {
 	usr, _ := userStore.FindById("019b4388-50ee-7f94-9caf-a8ceb54ef056")
 	fmt.Printf("TEST USER:\n%+v\n", *usr)
 
-	workoutHandler := api.NewWorkoutHandler(workoutStore)
+	workoutValidationService := service.NewWorkoutValidationService()
+
+	workoutHandler := api.NewWorkoutHandler(workoutStore, workoutValidationService)
 
 	authMiddleware := middleware.NewAuthMiddleware()
 	requestIDMiddleware := middleware.NewRequestIDMiddleware()

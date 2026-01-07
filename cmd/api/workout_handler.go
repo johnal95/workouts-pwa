@@ -7,16 +7,19 @@ import (
 	"net/http"
 
 	"github.com/johnal95/workouts-pwa/cmd/requestcontext"
+	"github.com/johnal95/workouts-pwa/cmd/service"
 	"github.com/johnal95/workouts-pwa/cmd/store"
 )
 
 type WorkoutHandler struct {
-	workoutStore store.WorkoutStore
+	workoutStore             store.WorkoutStore
+	workoutValidationService *service.WorkoutValidationService
 }
 
-func NewWorkoutHandler(workoutStore store.WorkoutStore) *WorkoutHandler {
+func NewWorkoutHandler(workoutStore store.WorkoutStore, workoutValidationService *service.WorkoutValidationService) *WorkoutHandler {
 	return &WorkoutHandler{
-		workoutStore: workoutStore,
+		workoutStore:             workoutStore,
+		workoutValidationService: workoutValidationService,
 	}
 }
 
@@ -61,6 +64,13 @@ func (h *WorkoutHandler) CreateWorkout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	workout.UserId = userID
+
+	if err := h.workoutValidationService.ValidateWorkout(&workout); err != nil {
+		slog.Warn("invalid workout", "error", err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Bad Request"))
+		return
+	}
 
 	newWorkout, err := h.workoutStore.Create(&workout)
 	if err != nil {
