@@ -1,6 +1,6 @@
 [build]
     bin = "./tmp/main"
-    cmd = "go build -o ./tmp/main ./cmd/main.go"
+    cmd = "go build -o ./tmp/main ./internal/main.go"
     exclude_dir = ["tmp"]
     exclude_regex = ["_test.go"]
-    include_dir = ["cmd", "static", "views"]
+    include_dir = ["internal", "static", "views"]

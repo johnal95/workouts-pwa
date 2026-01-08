@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/johnal95/workouts-pwa/cmd/config"
+	"github.com/johnal95/workouts-pwa/internal/config"
 )
 
 type SessionPayload struct {

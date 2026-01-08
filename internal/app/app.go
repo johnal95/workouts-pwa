@@ -4,11 +4,11 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/johnal95/workouts-pwa/cmd/middleware"
-	"github.com/johnal95/workouts-pwa/cmd/sqlx"
-	"github.com/johnal95/workouts-pwa/cmd/user"
-	"github.com/johnal95/workouts-pwa/cmd/workout"
-	workouthttp "github.com/johnal95/workouts-pwa/cmd/workout/transport/http"
+	"github.com/johnal95/workouts-pwa/internal/middleware"
+	"github.com/johnal95/workouts-pwa/internal/sqlx"
+	"github.com/johnal95/workouts-pwa/internal/user"
+	"github.com/johnal95/workouts-pwa/internal/workout"
+	workouthttp "github.com/johnal95/workouts-pwa/internal/workout/transport/http"
 	"github.com/johnal95/workouts-pwa/migrations"
 )
 

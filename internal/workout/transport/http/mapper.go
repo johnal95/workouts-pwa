@@ -1,7 +1,7 @@
 package http
 
 import (
-	"github.com/johnal95/workouts-pwa/cmd/workout"
+	"github.com/johnal95/workouts-pwa/internal/workout"
 )
 
 func ToWorkoutResponse(w *workout.Workout) *WorkoutResponse {

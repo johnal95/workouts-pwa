@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
-	"github.com/johnal95/workouts-pwa/cmd/requestcontext"
+	"github.com/johnal95/workouts-pwa/internal/requestcontext"
 )
 
 type RequestIDMiddleware struct {

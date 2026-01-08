@@ -3,7 +3,7 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/johnal95/workouts-pwa/cmd/requestcontext"
+	"github.com/johnal95/workouts-pwa/internal/requestcontext"
 )
 
 type AuthMiddleware struct {

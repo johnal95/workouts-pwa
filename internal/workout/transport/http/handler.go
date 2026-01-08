@@ -5,9 +5,9 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/johnal95/workouts-pwa/cmd/httpx"
-	"github.com/johnal95/workouts-pwa/cmd/requestcontext"
-	"github.com/johnal95/workouts-pwa/cmd/workout"
+	"github.com/johnal95/workouts-pwa/internal/httpx"
+	"github.com/johnal95/workouts-pwa/internal/requestcontext"
+	"github.com/johnal95/workouts-pwa/internal/workout"
 )
 
 type Handler struct {

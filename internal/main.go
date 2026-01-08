@@ -7,9 +7,9 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/johnal95/workouts-pwa/cmd/app"
-	"github.com/johnal95/workouts-pwa/cmd/config"
-	"github.com/johnal95/workouts-pwa/cmd/routes"
+	"github.com/johnal95/workouts-pwa/internal/app"
+	"github.com/johnal95/workouts-pwa/internal/config"
+	"github.com/johnal95/workouts-pwa/internal/routes"
 
 	_ "github.com/joho/godotenv/autoload"
 )
