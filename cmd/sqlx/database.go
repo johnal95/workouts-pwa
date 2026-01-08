@@ -1,4 +1,4 @@
-package store
+package sqlx
 
 import (
 	"database/sql"

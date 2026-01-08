@@ -22,12 +22,11 @@ func (m *AuthMiddleware) Authenticate(next http.Handler) http.Handler {
 
 func (m *AuthMiddleware) RequireUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		userID := requestcontext.GetUserID(r)
-		if userID == nil {
+		if _, exists := requestcontext.UserID(r); exists {
+			next.ServeHTTP(w, r)
+		} else {
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte("Unauthorized"))
-			return
 		}
-		next.ServeHTTP(w, r)
 	})
 }

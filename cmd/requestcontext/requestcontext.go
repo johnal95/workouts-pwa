@@ -10,24 +10,29 @@ type contextKey string
 const userIDContextKey = contextKey("ctx.user_id")
 const requestIDContextKey = contextKey("ctx.request_id")
 
-func GetUserID(r *http.Request) *string {
-	userID, ok := r.Context().Value(userIDContextKey).(*string)
+func UserID(r *http.Request) (string, bool) {
+	userID, ok := r.Context().Value(userIDContextKey).(string)
+	return userID, ok
+}
+
+func MustUserID(r *http.Request) string {
+	userID, ok := r.Context().Value(userIDContextKey).(string)
 	if !ok {
-		return nil
+		panic("requestcontext: user ID missing")
 	}
 	return userID
 }
 
 func SetUserID(r *http.Request, userID string) *http.Request {
 	return r.WithContext(
-		context.WithValue(r.Context(), userIDContextKey, &userID),
+		context.WithValue(r.Context(), userIDContextKey, userID),
 	)
 }
 
-func GetRequestID(r *http.Request) *string {
-	requestID, ok := r.Context().Value(requestIDContextKey).(*string)
+func MustRequestID(r *http.Request) string {
+	requestID, ok := r.Context().Value(requestIDContextKey).(string)
 	if !ok {
-		return nil
+		panic("requestcontext: request ID missing")
 	}
 	return requestID
 }

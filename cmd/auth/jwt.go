@@ -1,4 +1,4 @@
-package tokens
+package auth
 
 import (
 	"fmt"
@@ -10,6 +10,7 @@ import (
 
 type SessionPayload struct {
 	UserID string `json:"user_id"`
+	Email  string `json:"email"`
 }
 
 type sessionClaims struct {
@@ -17,12 +18,13 @@ type sessionClaims struct {
 	jwt.RegisteredClaims
 }
 
-func CreateToken(userID string) (string, error) {
+func CreateSessionToken(userID, email string) (string, error) {
 	sessionJWTSecret := []byte(config.GetSessionJWTSecret())
 
 	claims := sessionClaims{
 		SessionPayload: &SessionPayload{
 			UserID: userID,
+			Email:  email,
 		},
 		RegisteredClaims: jwt.RegisteredClaims{
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
