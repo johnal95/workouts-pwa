@@ -9,6 +9,7 @@ import (
 
 	"github.com/johnal95/workouts-pwa/internal/app"
 	"github.com/johnal95/workouts-pwa/internal/config"
+	"github.com/johnal95/workouts-pwa/internal/logging"
 	"github.com/johnal95/workouts-pwa/internal/routes"
 
 	_ "github.com/joho/godotenv/autoload"
@@ -33,8 +34,12 @@ func getProgramArgs() *ProgramArgs {
 func main() {
 	args := getProgramArgs()
 
+	logger := logging.NewLogger(config.GetAppEnv())
+	slog.SetDefault(logger)
+
 	app, err := app.NewApplication(&app.ApplicationOptions{
 		DatabaseURL: args.DatabaseURL,
+		Logger:      logger,
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -46,7 +51,7 @@ func main() {
 		Handler: routes.SetupRoutesHandler(app),
 	}
 
-	slog.Info(fmt.Sprintf("listening on %s", server.Addr))
+	logger.Info(fmt.Sprintf("listening on %s", server.Addr))
 
 	err = server.ListenAndServe()
 

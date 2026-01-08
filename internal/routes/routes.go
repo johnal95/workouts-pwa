@@ -12,6 +12,7 @@ func SetupRoutesHandler(app *app.Application) *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Use(app.RequestIDMiddleware.RequestID)
+	r.Use(app.LoggingMiddleware.Logger)
 
 	r.Group(func(r chi.Router) {
 		r.Use(app.AuthMiddleware.Authenticate)

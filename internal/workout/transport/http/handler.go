@@ -22,7 +22,7 @@ func NewHandler(service *workout.Service) *Handler {
 
 func (h *Handler) GetWorkouts(w http.ResponseWriter, r *http.Request) {
 	userID := requestcontext.MustUserID(r)
-	workouts, err := h.service.GetWorkouts(userID)
+	workouts, err := h.service.GetWorkouts(r.Context(), userID)
 	if err != nil {
 		httpx.RespondError(w, err)
 		return
@@ -34,7 +34,7 @@ func (h *Handler) GetWorkoutDetails(w http.ResponseWriter, r *http.Request) {
 	userID := requestcontext.MustUserID(r)
 	workoutID := r.PathValue("workoutId")
 
-	wo, err := h.service.GetWorkout(userID, workoutID)
+	wo, err := h.service.GetWorkout(r.Context(), userID, workoutID)
 	if err != nil {
 		if errors.Is(err, workout.ErrWorkoutNotFound) {
 			err = httpx.NotFound("workout not found", err)
@@ -54,7 +54,7 @@ func (h *Handler) CreateWorkout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userID := requestcontext.MustUserID(r)
-	newWorkout, err := h.service.CreateWorkout(&workout.Workout{
+	newWorkout, err := h.service.CreateWorkout(r.Context(), &workout.Workout{
 		Name:   data.Name,
 		UserID: userID,
 	})
@@ -76,7 +76,7 @@ func (h *Handler) DeleteWorkout(w http.ResponseWriter, r *http.Request) {
 	userID := requestcontext.MustUserID(r)
 	workoutID := r.PathValue("workoutId")
 
-	if err := h.service.DeleteWorkout(userID, workoutID); err != nil {
+	if err := h.service.DeleteWorkout(r.Context(), userID, workoutID); err != nil {
 		if errors.Is(err, workout.ErrWorkoutNotFound) {
 			err = httpx.NotFound("workout not found", err)
 		}

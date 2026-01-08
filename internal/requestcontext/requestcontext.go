@@ -29,6 +29,11 @@ func SetUserID(r *http.Request, userID string) *http.Request {
 	)
 }
 
+func RequestID(r *http.Request) (string, bool) {
+	requestID, ok := r.Context().Value(requestIDContextKey).(string)
+	return requestID, ok
+}
+
 func MustRequestID(r *http.Request) string {
 	requestID, ok := r.Context().Value(requestIDContextKey).(string)
 	if !ok {
@@ -39,6 +44,6 @@ func MustRequestID(r *http.Request) string {
 
 func SetRequestID(r *http.Request, requestID string) *http.Request {
 	return r.WithContext(
-		context.WithValue(r.Context(), requestIDContextKey, &requestID),
+		context.WithValue(r.Context(), requestIDContextKey, requestID),
 	)
 }

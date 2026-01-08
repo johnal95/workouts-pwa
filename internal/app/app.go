@@ -3,6 +3,7 @@ package app
 import (
 	"database/sql"
 	"fmt"
+	"log/slog"
 
 	"github.com/johnal95/workouts-pwa/internal/middleware"
 	"github.com/johnal95/workouts-pwa/internal/sqlx"
@@ -15,12 +16,14 @@ import (
 type Application struct {
 	AuthMiddleware      *middleware.AuthMiddleware
 	RequestIDMiddleware *middleware.RequestIDMiddleware
+	LoggingMiddleware   *middleware.LoggingMiddleware
 	WorkoutHandler      *workouthttp.Handler
 	DB                  *sql.DB
 }
 
 type ApplicationOptions struct {
 	DatabaseURL string
+	Logger      *slog.Logger
 }
 
 func NewApplication(options *ApplicationOptions) (*Application, error) {
@@ -46,6 +49,7 @@ func NewApplication(options *ApplicationOptions) (*Application, error) {
 	// Middlewares
 	authMiddleware := middleware.NewAuthMiddleware()
 	requestIDMiddleware := middleware.NewRequestIDMiddleware()
+	loggingMiddleware := middleware.NewLoggingMiddleware(options.Logger)
 
 	// Handlers
 	workoutHandler := workouthttp.NewHandler(workoutService)
@@ -60,6 +64,7 @@ func NewApplication(options *ApplicationOptions) (*Application, error) {
 	return &Application{
 		AuthMiddleware:      authMiddleware,
 		RequestIDMiddleware: requestIDMiddleware,
+		LoggingMiddleware:   loggingMiddleware,
 		WorkoutHandler:      workoutHandler,
 		DB:                  pgDB,
 	}, nil
