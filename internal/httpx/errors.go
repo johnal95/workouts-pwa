@@ -42,7 +42,7 @@ func BadRequest(err error, msg string, details any) PublicError {
 
 func NotFound(err error, msg string, details any) PublicError {
 	return PublicError{
-		StatusCode: http.StatusBadRequest,
+		StatusCode: http.StatusNotFound,
 		Message:    msg,
 		Details:    details,
 		Err:        err,

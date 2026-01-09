@@ -4,17 +4,21 @@ import (
 	"github.com/johnal95/workouts-pwa/internal/workout"
 )
 
+func ToExerciseResponse(e *workout.Exercise) *ExerciseResponse {
+	return &ExerciseResponse{
+		ID:              e.ID,
+		Name:            e.Name,
+		DefaultSetCount: e.DefaultSetCount,
+		MinReps:         e.MinReps,
+		MaxReps:         e.MaxReps,
+	}
+}
+
 func ToWorkoutResponse(w *workout.Workout) *WorkoutResponse {
 	exercises := []*ExerciseResponse{}
 
 	for _, e := range w.Exercises {
-		exercises = append(exercises, &ExerciseResponse{
-			ID:              e.ID,
-			Name:            e.Name,
-			DefaultSetCount: e.DefaultSetCount,
-			MinReps:         e.MinReps,
-			MaxReps:         e.MaxReps,
-		})
+		exercises = append(exercises, ToExerciseResponse(e))
 	}
 
 	return &WorkoutResponse{

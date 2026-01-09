@@ -12,7 +12,8 @@ import (
 type Repository interface {
 	FindAll(ctx context.Context, userID string) ([]*Workout, error)
 	FindByID(ctx context.Context, userID, workoutID string) (*Workout, error)
-	Create(ctx context.Context, w *Workout) (*Workout, error)
+	Create(ctx context.Context, userID string, w *Workout) (*Workout, error)
+	CreateExercise(ctx context.Context, userID, workoutID string, e *Exercise) (*Exercise, error)
 	Delete(ctx context.Context, userID, workoutID string) error
 }
 
@@ -96,7 +97,7 @@ func (r *PostgresRepository) FindAll(ctx context.Context, userID string) ([]*Wor
 		var exerciseMinReps sql.NullInt16
 		var exerciseMaxReps sql.NullInt16
 
-		if err := rows.Scan(&workoutID, &createdAt, &name, &exerciseID, &exerciseID, &exerciseDefaultSetCount, &exerciseMinReps, &exerciseMaxReps); err != nil {
+		if err := rows.Scan(&workoutID, &createdAt, &name, &exerciseID, &exerciseName, &exerciseDefaultSetCount, &exerciseMinReps, &exerciseMaxReps); err != nil {
 			return nil, err
 		}
 
@@ -129,7 +130,7 @@ func (r *PostgresRepository) FindAll(ctx context.Context, userID string) ([]*Wor
 	return workouts, nil
 }
 
-func (r *PostgresRepository) Create(ctx context.Context, w *Workout) (*Workout, error) {
+func (r *PostgresRepository) Create(ctx context.Context, userID string, w *Workout) (*Workout, error) {
 	newWorkout := &Workout{
 		Exercises: []*Exercise{},
 	}
@@ -138,7 +139,7 @@ func (r *PostgresRepository) Create(ctx context.Context, w *Workout) (*Workout, 
 		INSERT INTO workouts (user_id, name)
 		VALUES ($1, $2)
 		RETURNING id, created_at, name
-	`, w.UserID, w.Name,
+	`, userID, w.Name,
 	).Scan(&newWorkout.ID, &newWorkout.CreatedAt, &newWorkout.Name); err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" && pgErr.ConstraintName == "workouts_user_id_name_key" {
@@ -151,9 +152,36 @@ func (r *PostgresRepository) Create(ctx context.Context, w *Workout) (*Workout, 
 	return newWorkout, nil
 }
 
-func (s *PostgresRepository) Delete(ctx context.Context, userID, workoutID string) error {
+func (r *PostgresRepository) CreateExercise(ctx context.Context, userID, workoutID string, e *Exercise) (*Exercise, error) {
+	newExercise := &Exercise{}
+
+	if err := r.db.QueryRow(`
+		INSERT INTO exercises (workout_id, name, default_set_count, min_reps, max_reps)
+		SELECT w.id, $1, $2, $3, $4
+		FROM workouts w
+		WHERE w.id = $5
+		AND w.user_id = $6
+		RETURNING id, created_at, workout_id, name, default_set_count, min_reps, max_reps
+	`, e.Name, e.DefaultSetCount, e.MinReps, e.MaxReps, workoutID, userID,
+	).Scan(&newExercise.ID, &newExercise.CreatedAt, &newExercise.WorkoutID, &newExercise.Name, &newExercise.DefaultSetCount, &newExercise.MinReps, &newExercise.MaxReps); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrWorkoutNotFound
+		}
+
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" && pgErr.ConstraintName == "exercises_workout_id_name_key" {
+			return nil, ErrExerciseNameAlreadyExists
+		}
+		return nil, err
+
+	}
+
+	return newExercise, nil
+}
+
+func (r *PostgresRepository) Delete(ctx context.Context, userID, workoutID string) error {
 	var w Workout
-	err := s.db.QueryRow(`
+	err := r.db.QueryRow(`
 		DELETE FROM workouts
 		WHERE user_id = $1
 		AND id = $2

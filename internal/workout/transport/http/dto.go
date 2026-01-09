@@ -17,3 +17,10 @@ type WorkoutResponse struct {
 type CreateWorkoutRequest struct {
 	Name *string `json:"name" validate:"required,min=3,max=50"`
 }
+
+type CreateExerciseRequest struct {
+	Name            *string `json:"name" validate:"required,min=3,max=50"`
+	DefaultSetCount *uint   `json:"default_set_count" validate:"required,min=1,max=40"`
+	MinReps         *uint   `json:"min_reps" validate:"required,min=1,max=100"`
+	MaxReps         *uint   `json:"max_reps" validate:"required,min=1,max=100"`
+}
