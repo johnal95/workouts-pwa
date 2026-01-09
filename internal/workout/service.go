@@ -20,7 +20,7 @@ func NewService(repo Repository) *Service {
 func (s *Service) GetWorkout(ctx context.Context, userID, workoutID string) (*Workout, error) {
 	logger := logging.Logger(ctx)
 
-	w, err := s.repo.FindByID(userID, workoutID)
+	w, err := s.repo.FindByID(ctx, userID, workoutID)
 
 	if err != nil {
 		if errors.Is(err, ErrWorkoutNotFound) {
@@ -35,7 +35,7 @@ func (s *Service) GetWorkout(ctx context.Context, userID, workoutID string) (*Wo
 }
 
 func (s *Service) GetWorkouts(ctx context.Context, userID string) ([]*Workout, error) {
-	return s.repo.FindAll(userID)
+	return s.repo.FindAll(ctx, userID)
 }
 
 func (s *Service) CreateWorkout(ctx context.Context, w *Workout) (*Workout, error) {
@@ -45,7 +45,7 @@ func (s *Service) CreateWorkout(ctx context.Context, w *Workout) (*Workout, erro
 		return nil, ErrWorkoutNameInvalid
 	}
 
-	workout, err := s.repo.Create(w)
+	workout, err := s.repo.Create(ctx, w)
 	if err != nil {
 		if errors.Is(err, ErrWorkoutNameAlreadyExists) {
 			logger.Warn("duplicate workout name", "user_id", w.UserID, "name", w.Name)
@@ -59,5 +59,5 @@ func (s *Service) CreateWorkout(ctx context.Context, w *Workout) (*Workout, erro
 }
 
 func (s *Service) DeleteWorkout(ctx context.Context, userID, workoutID string) error {
-	return s.repo.Delete(userID, workoutID)
+	return s.repo.Delete(ctx, userID, workoutID)
 }

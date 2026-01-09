@@ -1,6 +1,7 @@
 package workout
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"time"
@@ -9,10 +10,10 @@ import (
 )
 
 type Repository interface {
-	FindAll(userID string) ([]*Workout, error)
-	FindByID(userID, workoutID string) (*Workout, error)
-	Create(w *Workout) (*Workout, error)
-	Delete(userID, workoutID string) error
+	FindAll(ctx context.Context, userID string) ([]*Workout, error)
+	FindByID(ctx context.Context, userID, workoutID string) (*Workout, error)
+	Create(ctx context.Context, w *Workout) (*Workout, error)
+	Delete(ctx context.Context, userID, workoutID string) error
 }
 
 type PostgresRepository struct {
@@ -25,7 +26,7 @@ func NewPostgresRepository(db *sql.DB) *PostgresRepository {
 	}
 }
 
-func (r *PostgresRepository) FindByID(userID, workoutID string) (*Workout, error) {
+func (r *PostgresRepository) FindByID(ctx context.Context, userID, workoutID string) (*Workout, error) {
 	rows, err := r.db.Query(`
 		SELECT w.id, w.created_at, w.name, e.id, e.name, e.default_set_count, e.min_reps, e.max_reps
 		FROM workouts w
@@ -71,7 +72,7 @@ func (r *PostgresRepository) FindByID(userID, workoutID string) (*Workout, error
 	return workout, nil
 }
 
-func (r *PostgresRepository) FindAll(userID string) ([]*Workout, error) {
+func (r *PostgresRepository) FindAll(ctx context.Context, userID string) ([]*Workout, error) {
 	rows, err := r.db.Query(`
 		SELECT w.id, w.created_at, w.name, e.id, e.name, e.default_set_count, e.min_reps, e.max_reps
 		FROM workouts w
@@ -128,7 +129,7 @@ func (r *PostgresRepository) FindAll(userID string) ([]*Workout, error) {
 	return workouts, nil
 }
 
-func (r *PostgresRepository) Create(w *Workout) (*Workout, error) {
+func (r *PostgresRepository) Create(ctx context.Context, w *Workout) (*Workout, error) {
 	newWorkout := &Workout{
 		Exercises: []*Exercise{},
 	}
@@ -150,7 +151,7 @@ func (r *PostgresRepository) Create(w *Workout) (*Workout, error) {
 	return newWorkout, nil
 }
 
-func (s *PostgresRepository) Delete(userID, workoutID string) error {
+func (s *PostgresRepository) Delete(ctx context.Context, userID, workoutID string) error {
 	var w Workout
 	err := s.db.QueryRow(`
 		DELETE FROM workouts

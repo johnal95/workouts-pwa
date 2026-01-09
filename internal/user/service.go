@@ -1,6 +1,7 @@
 package user
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 )
@@ -15,8 +16,8 @@ func NewService(repo Repository) *Service {
 	}
 }
 
-func (s *Service) GetUser(userID string) (*User, error) {
-	user, err := s.repo.FindByID(userID)
+func (s *Service) GetUser(ctx context.Context, userID string) (*User, error) {
+	user, err := s.repo.FindByID(ctx, userID)
 	if err != nil {
 		if errors.Is(err, ErrUserNotFound) {
 			slog.Warn("user not found", "user_id", userID)
@@ -28,8 +29,8 @@ func (s *Service) GetUser(userID string) (*User, error) {
 	return user, nil
 }
 
-func (s *Service) CreateUser(u *User) (*User, error) {
-	user, err := s.repo.Create(u)
+func (s *Service) CreateUser(ctx context.Context, u *User) (*User, error) {
+	user, err := s.repo.Create(ctx, u)
 	if err != nil {
 		if errors.Is(err, ErrUserEmailAlreadyExists) {
 			slog.Warn("user with email already exists", "email", u.Email)

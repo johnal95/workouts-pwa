@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log/slog"
@@ -58,7 +59,7 @@ func NewApplication(options *ApplicationOptions) (*Application, error) {
 	pgDB.Query(`DELETE FROM users`)
 	pgDB.Query(`INSERT INTO users (id, email, auth_id, auth_provider) VALUES ($1, $2, $3, $4)`,
 		"019b4388-50ee-7f94-9caf-a8ceb54ef056", "john.doe@gmail.com", "random_auth_id", "GOOGLE")
-	usr, _ := userService.GetUser("019b4388-50ee-7f94-9caf-a8ceb54ef056")
+	usr, _ := userService.GetUser(context.Background(), "019b4388-50ee-7f94-9caf-a8ceb54ef056")
 	fmt.Printf("TEST USER:\n%+v\n", *usr)
 
 	return &Application{

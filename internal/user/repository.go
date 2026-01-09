@@ -1,6 +1,7 @@
 package user
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 
@@ -8,8 +9,8 @@ import (
 )
 
 type Repository interface {
-	FindByID(userID string) (*User, error)
-	Create(u *User) (*User, error)
+	FindByID(ctx context.Context, userID string) (*User, error)
+	Create(ctx context.Context, u *User) (*User, error)
 }
 
 type PostgresRepository struct {
@@ -22,7 +23,7 @@ func NewPostgresRepository(db *sql.DB) *PostgresRepository {
 	}
 }
 
-func (r *PostgresRepository) FindByID(userID string) (*User, error) {
+func (r *PostgresRepository) FindByID(ctx context.Context, userID string) (*User, error) {
 	var user User
 
 	if err := r.db.QueryRow(`
@@ -41,7 +42,7 @@ func (r *PostgresRepository) FindByID(userID string) (*User, error) {
 	return &user, nil
 }
 
-func (r *PostgresRepository) Create(u *User) (*User, error) {
+func (r *PostgresRepository) Create(ctx context.Context, u *User) (*User, error) {
 	var user User
 	if err := r.db.QueryRow(`
 		INSERT INTO users (email, auth_provider, auth_id)
