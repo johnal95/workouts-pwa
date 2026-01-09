@@ -1,7 +1,6 @@
 package http
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
 
@@ -11,11 +10,13 @@ import (
 )
 
 type Handler struct {
+	parser  *httpx.Parser
 	service *workout.Service
 }
 
-func NewHandler(service *workout.Service) *Handler {
+func NewHandler(parser *httpx.Parser, service *workout.Service) *Handler {
 	return &Handler{
+		parser:  parser,
 		service: service,
 	}
 }
@@ -37,7 +38,7 @@ func (h *Handler) GetWorkoutDetails(w http.ResponseWriter, r *http.Request) {
 	wo, err := h.service.GetWorkout(r.Context(), userID, workoutID)
 	if err != nil {
 		if errors.Is(err, workout.ErrWorkoutNotFound) {
-			err = httpx.NotFound("workout not found", err)
+			err = httpx.NotFound(err, "workout not found", nil)
 		}
 		httpx.RespondError(w, err)
 		return
@@ -47,23 +48,19 @@ func (h *Handler) GetWorkoutDetails(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) CreateWorkout(w http.ResponseWriter, r *http.Request) {
 	var data CreateWorkoutRequest
-	err := json.NewDecoder(r.Body).Decode(&data)
-	if err != nil {
-		httpx.RespondError(w, httpx.InvalidRequestBody(err))
+	if err := h.parser.ParseJSON(r.Body, &data); err != nil {
+		httpx.RespondError(w, err)
 		return
 	}
 
 	userID := requestcontext.MustUserID(r)
 	newWorkout, err := h.service.CreateWorkout(r.Context(), &workout.Workout{
-		Name:   data.Name,
+		Name:   *data.Name,
 		UserID: userID,
 	})
 	if err != nil {
 		if errors.Is(err, workout.ErrWorkoutNameAlreadyExists) {
-			err = httpx.Conflict("workout name must be unique", err)
-		}
-		if errors.Is(err, workout.ErrWorkoutNameInvalid) {
-			err = httpx.BadRequest("invalid workout name", err)
+			err = httpx.Conflict(err, "workout name must be unique", nil)
 		}
 		httpx.RespondError(w, err)
 		return
@@ -78,7 +75,7 @@ func (h *Handler) DeleteWorkout(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.service.DeleteWorkout(r.Context(), userID, workoutID); err != nil {
 		if errors.Is(err, workout.ErrWorkoutNotFound) {
-			err = httpx.NotFound("workout not found", err)
+			err = httpx.NotFound(err, "workout not found", nil)
 		}
 		httpx.RespondError(w, err)
 		return

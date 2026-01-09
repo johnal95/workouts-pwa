@@ -41,10 +41,6 @@ func (s *Service) GetWorkouts(ctx context.Context, userID string) ([]*Workout, e
 func (s *Service) CreateWorkout(ctx context.Context, w *Workout) (*Workout, error) {
 	logger := logging.Logger(ctx)
 
-	if len(w.Name) < 1 || len(w.Name) > 40 {
-		return nil, ErrWorkoutNameInvalid
-	}
-
 	workout, err := s.repo.Create(ctx, w)
 	if err != nil {
 		if errors.Is(err, ErrWorkoutNameAlreadyExists) {

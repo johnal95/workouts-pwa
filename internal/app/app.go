@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/go-playground/validator/v10"
+	"github.com/johnal95/workouts-pwa/internal/httpx"
 	"github.com/johnal95/workouts-pwa/internal/middleware"
 	"github.com/johnal95/workouts-pwa/internal/sqlx"
 	"github.com/johnal95/workouts-pwa/internal/user"
@@ -39,6 +41,12 @@ func NewApplication(options *ApplicationOptions) (*Application, error) {
 		return nil, err
 	}
 
+	// Validators
+	validate := validator.New(validator.WithRequiredStructEnabled())
+
+	// Parsers
+	parser := httpx.NewParser(validate)
+
 	// Repositories
 	userRepo := user.NewPostgresRepository(pgDB)
 	workoutRepo := workout.NewPostgresRepository(pgDB)
@@ -53,7 +61,7 @@ func NewApplication(options *ApplicationOptions) (*Application, error) {
 	loggingMiddleware := middleware.NewLoggingMiddleware(options.Logger)
 
 	// Handlers
-	workoutHandler := workouthttp.NewHandler(workoutService)
+	workoutHandler := workouthttp.NewHandler(parser, workoutService)
 
 	// TEMPORARY TEST USER SNIPPET
 	pgDB.Query(`DELETE FROM users`)

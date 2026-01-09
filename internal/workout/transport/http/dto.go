@@ -15,5 +15,5 @@ type WorkoutResponse struct {
 }
 
 type CreateWorkoutRequest struct {
-	Name string `json:"name" validate:"required"`
+	Name *string `json:"name" validate:"required,min=3,max=50"`
 }

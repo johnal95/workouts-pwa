@@ -1,10 +1,16 @@
 package httpx
 
-import "net/http"
+import (
+	"errors"
+	"net/http"
+
+	"github.com/go-playground/validator/v10"
+)
 
 type PublicError struct {
 	StatusCode int
 	Message    string
+	Details    any
 	Err        error
 }
 
@@ -12,35 +18,47 @@ func (e PublicError) Error() string {
 	return e.Err.Error()
 }
 
-func InvalidRequestBody(err error) PublicError {
-	return BadRequest("invalid request body", err)
+func ValidationError(err error, target any) error {
+	var ve validator.ValidationErrors
+	if !errors.As(err, &ve) {
+		return InternalServerError(err)
+	}
+	fields := map[string]string{}
+	for _, fe := range ve {
+		fields[fe.Field()] = fe.Tag()
+	}
+	return BadRequest(err, "invalid request body", fields)
+
 }
 
-func BadRequest(msg string, err error) PublicError {
+func BadRequest(err error, msg string, details any) PublicError {
 	return PublicError{
 		StatusCode: http.StatusBadRequest,
 		Message:    msg,
+		Details:    details,
 		Err:        err,
 	}
 }
 
-func NotFound(msg string, err error) PublicError {
+func NotFound(err error, msg string, details any) PublicError {
 	return PublicError{
-		StatusCode: http.StatusNotFound,
+		StatusCode: http.StatusBadRequest,
 		Message:    msg,
+		Details:    details,
 		Err:        err,
 	}
 }
 
-func Conflict(msg string, err error) PublicError {
+func Conflict(err error, msg string, details any) PublicError {
 	return PublicError{
-		StatusCode: http.StatusConflict,
+		StatusCode: http.StatusBadRequest,
 		Message:    msg,
+		Details:    details,
 		Err:        err,
 	}
 }
 
-func Internal(err error) PublicError {
+func InternalServerError(err error) PublicError {
 	return PublicError{
 		StatusCode: http.StatusInternalServerError,
 		Message:    "internal server error",

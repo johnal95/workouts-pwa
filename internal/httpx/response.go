@@ -7,7 +7,8 @@ import (
 )
 
 type ErrorResponse struct {
-	Error string `json:"error"`
+	Error   string `json:"error"`
+	Details any    `json:"details,omitempty"`
 }
 
 func RespondJSON(w http.ResponseWriter, statusCode int, data any) {
@@ -24,14 +25,13 @@ func RespondError(w http.ResponseWriter, err error) {
 
 	if errors.As(err, &pe) {
 		RespondJSON(w, pe.StatusCode, ErrorResponse{
-			Error: pe.Message,
+			Error:   pe.Message,
+			Details: pe.Details,
 		})
 		return
 	}
 
-	RespondJSON(w, http.StatusInternalServerError, ErrorResponse{
-		Error: "internal server error",
-	})
+	RespondJSON(w, http.StatusInternalServerError, InternalServerError(err))
 }
 
 func RespondNoContent(w http.ResponseWriter) {
