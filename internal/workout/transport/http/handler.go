@@ -54,9 +54,8 @@ func (h *Handler) CreateWorkout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userID := requestcontext.MustUserID(r)
-	newWorkout, err := h.service.CreateWorkout(r.Context(), &workout.Workout{
-		Name:   *data.Name,
-		UserID: userID,
+	newWorkout, err := h.service.CreateWorkout(r.Context(), userID, &workout.CreateWorkoutInput{
+		Name: *data.Name,
 	})
 	if err != nil {
 		if errors.Is(err, workout.ErrWorkoutNameAlreadyExists) {

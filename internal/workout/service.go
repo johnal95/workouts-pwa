@@ -38,13 +38,20 @@ func (s *Service) GetWorkouts(ctx context.Context, userID string) ([]*Workout, e
 	return s.repo.FindAll(ctx, userID)
 }
 
-func (s *Service) CreateWorkout(ctx context.Context, w *Workout) (*Workout, error) {
+type CreateWorkoutInput struct {
+	Name string
+}
+
+func (s *Service) CreateWorkout(ctx context.Context, userID string, input *CreateWorkoutInput) (*Workout, error) {
 	logger := logging.Logger(ctx)
 
-	workout, err := s.repo.Create(ctx, w)
+	workout, err := s.repo.Create(ctx, &Workout{
+		UserID: userID,
+		Name:   input.Name,
+	})
 	if err != nil {
 		if errors.Is(err, ErrWorkoutNameAlreadyExists) {
-			logger.Warn("duplicate workout name", "user_id", w.UserID, "name", w.Name)
+			logger.Warn("duplicate workout name", "user_id", userID, "name", input.Name)
 		} else {
 			logger.Error("failed to create workout", "error", err)
 		}

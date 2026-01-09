@@ -29,11 +29,21 @@ func (s *Service) GetUser(ctx context.Context, userID string) (*User, error) {
 	return user, nil
 }
 
-func (s *Service) CreateUser(ctx context.Context, u *User) (*User, error) {
-	user, err := s.repo.Create(ctx, u)
+type CreateUserInput struct {
+	Email        string
+	AuthProvider AuthProvider
+	AuthID       string
+}
+
+func (s *Service) CreateUser(ctx context.Context, input *CreateUserInput) (*User, error) {
+	user, err := s.repo.Create(ctx, &User{
+		Email:        input.Email,
+		AuthProvider: input.AuthProvider,
+		AuthID:       input.AuthID,
+	})
 	if err != nil {
 		if errors.Is(err, ErrUserEmailAlreadyExists) {
-			slog.Warn("user with email already exists", "email", u.Email)
+			slog.Warn("user with email already exists", "email", input.Email)
 		} else {
 			slog.Error("failed to create user", "error", err)
 		}
