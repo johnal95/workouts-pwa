@@ -21,11 +21,13 @@ func getRequiredEnv(name string) string {
 }
 
 func GetAppEnv() Environment {
-	value, exists := os.LookupEnv("APP_ENV")
-	if exists && value == "development" {
+	env := os.Getenv("APP_ENV")
+	switch env {
+	case "development":
 		return EnvDevelopment
+	default:
+		return EnvProduction
 	}
-	return EnvProduction
 }
 
 func GetDatabaseURL() string {
