@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"log/slog"
@@ -20,25 +19,12 @@ type ProgramArgs struct {
 	DatabaseURL string
 }
 
-func getProgramArgs() *ProgramArgs {
-	var port int
-	flag.IntVar(&port, "port", 8080, "go server port")
-	flag.Parse()
-
-	return &ProgramArgs{
-		Port:        port,
-		DatabaseURL: config.GetDatabaseURL(),
-	}
-}
-
 func main() {
-	args := getProgramArgs()
-
 	logger := logging.NewLogger(config.GetAppEnv())
 	slog.SetDefault(logger)
 
 	app, err := app.NewApplication(&app.ApplicationOptions{
-		DatabaseURL: args.DatabaseURL,
+		DatabaseURL: config.GetDatabaseURL(),
 		Logger:      logger,
 	})
 	if err != nil {
@@ -47,7 +33,7 @@ func main() {
 	defer app.DB.Close()
 
 	server := http.Server{
-		Addr:    fmt.Sprintf(":%d", args.Port),
+		Addr:    fmt.Sprintf(":%d", config.GetPort()),
 		Handler: routes.SetupRoutesHandler(app),
 	}
 

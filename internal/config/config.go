@@ -1,6 +1,7 @@
 package config
 
 import (
+	"flag"
 	"log"
 	"os"
 )
@@ -28,6 +29,13 @@ func GetAppEnv() Environment {
 	default:
 		return EnvProduction
 	}
+}
+
+func GetPort() int {
+	var port int
+	flag.IntVar(&port, "port", 8080, "go server port")
+	flag.Parse()
+	return port
 }
 
 func GetDatabaseURL() string {

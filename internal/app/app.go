@@ -13,7 +13,6 @@ import (
 	"github.com/johnal95/workouts-pwa/internal/user"
 	"github.com/johnal95/workouts-pwa/internal/workout"
 	workouthttp "github.com/johnal95/workouts-pwa/internal/workout/transport/http"
-	"github.com/johnal95/workouts-pwa/migrations"
 )
 
 type Application struct {
@@ -32,11 +31,6 @@ type ApplicationOptions struct {
 func NewApplication(options *ApplicationOptions) (*Application, error) {
 
 	pgDB, err := sqlx.Open(options.DatabaseURL)
-	if err != nil {
-		return nil, err
-	}
-
-	err = sqlx.Migrate(pgDB, migrations.FS, ".")
 	if err != nil {
 		return nil, err
 	}
