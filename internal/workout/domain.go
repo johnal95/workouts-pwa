@@ -1,15 +1,17 @@
 package workout
 
-import "time"
+import (
+	"time"
 
-type Exercise struct {
-	ID              string
-	CreatedAt       time.Time
-	WorkoutID       string
-	Name            string
-	DefaultSetCount uint
-	MinReps         uint
-	MaxReps         uint
+	"github.com/johnal95/workouts-pwa/internal/exercise"
+)
+
+type WorkoutExercise struct {
+	ID        string
+	WorkoutID string
+	Exercise  exercise.Exercise
+	Position  int
+	Notes     *string
 }
 
 type Workout struct {
@@ -17,19 +19,5 @@ type Workout struct {
 	CreatedAt time.Time
 	UserID    string
 	Name      string
-	Exercises []*Exercise
-}
-
-type ExerciseSetLog struct {
-	ID         string
-	ExerciseID string
-	Index      int
-	Reps       uint
-	KG         uint
-}
-
-type WorkoutLog struct {
-	ID        string
-	WorkoutID string
-	Date      time.Time
+	Exercises []*WorkoutExercise
 }

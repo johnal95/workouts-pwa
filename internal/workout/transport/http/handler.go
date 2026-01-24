@@ -68,6 +68,31 @@ func (h *Handler) CreateWorkout(w http.ResponseWriter, r *http.Request) {
 	httpx.RespondJSON(w, http.StatusCreated, ToWorkoutResponse(newWorkout))
 }
 
+func (h *Handler) CreateWorkoutExercise(w http.ResponseWriter, r *http.Request) {
+	var data CreateWorkoutExerciseRequest
+	if err := h.parser.ParseJSON(r.Body, &data); err != nil {
+		httpx.RespondError(w, err)
+		return
+	}
+
+	userID := requestcontext.MustUserID(r)
+	workoutID := r.PathValue("workoutId")
+
+	newWorkoutExercise, err := h.service.CreateWorkoutExercise(r.Context(), userID, workoutID, &workout.CreateWorkoutExerciseInput{
+		ExerciseID: *data.ExerciseID,
+		Notes:      data.Notes,
+	})
+	if err != nil {
+		if errors.Is(err, workout.ErrWorkoutNotFound) {
+			err = httpx.NotFound(err, "workout not found", nil)
+		}
+		httpx.RespondError(w, err)
+		return
+	}
+
+	httpx.RespondJSON(w, http.StatusCreated, ToWorkoutExerciseResponse(newWorkoutExercise))
+}
+
 func (h *Handler) DeleteWorkout(w http.ResponseWriter, r *http.Request) {
 	userID := requestcontext.MustUserID(r)
 	workoutID := r.PathValue("workoutId")
@@ -81,34 +106,4 @@ func (h *Handler) DeleteWorkout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	httpx.RespondNoContent(w)
-}
-
-func (h *Handler) CreateWorkoutExercise(w http.ResponseWriter, r *http.Request) {
-	var data CreateExerciseRequest
-	if err := h.parser.ParseJSON(r.Body, &data); err != nil {
-		httpx.RespondError(w, err)
-		return
-	}
-
-	userID := requestcontext.MustUserID(r)
-	workoutID := r.PathValue("workoutId")
-
-	e, err := h.service.CreateExercise(r.Context(), userID, workoutID, &workout.CreateExerciseInput{
-		Name:            *data.Name,
-		DefaultSetCount: *data.DefaultSetCount,
-		MinReps:         *data.MinReps,
-		MaxReps:         *data.MaxReps,
-	})
-	if err != nil {
-		if errors.Is(err, workout.ErrExerciseNameAlreadyExists) {
-			err = httpx.Conflict(err, "exercise name must be unique per workout", nil)
-		}
-		if errors.Is(err, workout.ErrWorkoutNotFound) {
-			err = httpx.NotFound(err, "workout not found", nil)
-		}
-		httpx.RespondError(w, err)
-		return
-	}
-
-	httpx.RespondJSON(w, http.StatusCreated, ToExerciseResponse(e))
 }

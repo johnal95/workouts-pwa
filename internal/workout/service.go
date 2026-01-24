@@ -4,16 +4,19 @@ import (
 	"context"
 	"errors"
 
+	"github.com/johnal95/workouts-pwa/internal/exercise"
 	"github.com/johnal95/workouts-pwa/internal/logging"
 )
 
 type Service struct {
-	repo Repository
+	repo            Repository
+	exerciseService *exercise.Service
 }
 
-func NewService(repo Repository) *Service {
+func NewService(repo Repository, exerciseService *exercise.Service) *Service {
 	return &Service{
-		repo: repo,
+		repo:            repo,
+		exerciseService: exerciseService,
 	}
 }
 
@@ -38,7 +41,15 @@ func (s *Service) GetWorkout(ctx context.Context, userID, workoutID string) (*Wo
 }
 
 func (s *Service) GetWorkouts(ctx context.Context, userID string) ([]*Workout, error) {
-	return s.repo.FindAll(ctx, userID)
+	logger := logging.Logger(ctx)
+
+	workouts, err := s.repo.FindAll(ctx, userID)
+	if err != nil {
+		logger.Error("failed to retrieve workouts", "error", err)
+		return nil, err
+	}
+
+	return workouts, nil
 }
 
 type CreateWorkoutInput struct {
@@ -63,40 +74,42 @@ func (s *Service) CreateWorkout(ctx context.Context, userID string, input *Creat
 	return workout, nil
 }
 
-type CreateExerciseInput struct {
-	Name            string
-	DefaultSetCount uint
-	MinReps         uint
-	MaxReps         uint
+type CreateWorkoutExerciseInput struct {
+	ExerciseID string
+	Notes      *string
 }
 
-func (s *Service) CreateExercise(ctx context.Context, userID, workoutID string, input *CreateExerciseInput) (*Exercise, error) {
+func (s *Service) CreateWorkoutExercise(
+	ctx context.Context,
+	userID string,
+	workoutID string,
+	input *CreateWorkoutExerciseInput,
+) (*WorkoutExercise, error) {
 	logger := logging.Logger(ctx)
 
-	exercise, err := s.repo.CreateExercise(ctx, userID, workoutID, &Exercise{
-		Name:            input.Name,
-		DefaultSetCount: input.DefaultSetCount,
-		MinReps:         input.MinReps,
-		MaxReps:         input.MaxReps,
-	})
+	workoutExercise, err := s.repo.CreateWorkoutExercise(ctx, userID, workoutID, input.ExerciseID, input.Notes)
 	if err != nil {
-		if errors.Is(err, ErrExerciseNameAlreadyExists) {
-			logger.Warn("duplicate exercise name",
-				"user_id", userID,
-				"workout_id", workoutID,
-				"name", input.Name)
-		} else if errors.Is(err, ErrWorkoutNotFound) {
-			logger.Warn("workout not found",
-				"user_id", userID,
-				"id", workoutID)
-		} else {
-			logger.Error("failed to create workout",
-				"error", err)
-		}
+		logger.Error("failed to create workout exercise",
+			"user_id", userID,
+			"workout_id", workoutID,
+			"exercise_id", input.ExerciseID,
+			"error", err)
 		return nil, err
 	}
 
-	return exercise, nil
+	exercise, err := s.exerciseService.GetByID(ctx, workoutExercise.Exercise.ID)
+	if err != nil {
+		logger.Error("failed to retrieve exercise data after creating workout exercise",
+			"id", workoutExercise.ID,
+			"user_id", userID,
+			"workout_id", workoutID,
+			"exercise_id", input.ExerciseID,
+			"error", err)
+		return nil, err
+	}
+	workoutExercise.Exercise = *exercise
+
+	return workoutExercise, nil
 }
 
 func (s *Service) DeleteWorkout(ctx context.Context, userID, workoutID string) error {

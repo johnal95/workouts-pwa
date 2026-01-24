@@ -7,13 +7,14 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/johnal95/workouts-pwa/internal/exercise"
 )
 
 type Repository interface {
 	FindAll(ctx context.Context, userID string) ([]*Workout, error)
 	FindByID(ctx context.Context, userID, workoutID string) (*Workout, error)
 	Create(ctx context.Context, userID string, w *Workout) (*Workout, error)
-	CreateExercise(ctx context.Context, userID, workoutID string, e *Exercise) (*Exercise, error)
+	CreateWorkoutExercise(ctx context.Context, userID string, workoutID string, exerciseID string, notes *string) (*WorkoutExercise, error)
 	Delete(ctx context.Context, userID, workoutID string) error
 }
 
@@ -27,46 +28,124 @@ func NewPostgresRepository(db *sql.DB) *PostgresRepository {
 	}
 }
 
+const baseWorkoutSelectQuery = `
+SELECT
+	w.id,
+	w.created_at,
+	w.name,
+	e.id,
+	e.created_at,
+	e.type,
+	et.name,
+	et.description,
+	we.id,
+	we.position,
+	we.notes
+FROM workouts w
+LEFT JOIN workout_exercises we
+ON we.workout_id = w.id
+LEFT JOIN exercises e
+ON we.exercise_id = e.id
+LEFT JOIN exercise_translations et
+ON et.exercise_id = e.id AND et.locale = 'en-US'
+WHERE w.user_id = $1
+`
+
+type workoutRow struct {
+	WorkoutID        string
+	WorkoutCreatedAt time.Time
+	WorkoutName      string
+
+	ExerciseID          sql.NullString
+	ExerciseCreatedAt   sql.NullTime
+	ExerciseType        sql.NullString
+	ExerciseName        sql.NullString
+	ExerciseDescription sql.NullString
+
+	WorkoutExerciseID       sql.NullString
+	WorkoutExercisePosition sql.NullInt16
+	WorkoutExerciseNotes    sql.NullString
+}
+
+func scanWorkoutRow(rows *sql.Rows) (*workoutRow, error) {
+	var r workoutRow
+	if err := rows.Scan(
+		&r.WorkoutID,
+		&r.WorkoutCreatedAt,
+		&r.WorkoutName,
+		&r.ExerciseID,
+		&r.ExerciseCreatedAt,
+		&r.ExerciseType,
+		&r.ExerciseName,
+		&r.ExerciseDescription,
+		&r.WorkoutExerciseID,
+		&r.WorkoutExercisePosition,
+		&r.WorkoutExerciseNotes,
+	); err != nil {
+		return nil, err
+	}
+	return &r, nil
+}
+
+func workoutExerciseFromRow(workoutID string, r *workoutRow) *WorkoutExercise {
+	if !r.ExerciseID.Valid {
+		return nil
+	}
+
+	exercise := exercise.Exercise{
+		ID:        r.ExerciseID.String,
+		CreatedAt: r.ExerciseCreatedAt.Time,
+		Type:      exercise.ExerciseType(r.ExerciseType.String),
+		Name:      r.ExerciseName.String,
+	}
+
+	if r.ExerciseDescription.Valid {
+		exercise.Description = &r.ExerciseDescription.String
+	}
+
+	workoutExercise := &WorkoutExercise{
+		ID:        r.WorkoutExerciseID.String,
+		WorkoutID: workoutID,
+		Exercise:  exercise,
+		Position:  int(r.WorkoutExercisePosition.Int16),
+	}
+
+	if r.WorkoutExerciseNotes.Valid {
+		workoutExercise.Notes = &r.WorkoutExerciseNotes.String
+	}
+	return workoutExercise
+}
+
 func (r *PostgresRepository) FindByID(ctx context.Context, userID, workoutID string) (*Workout, error) {
-	rows, err := r.db.Query(`
-		SELECT w.id, w.created_at, w.name, e.id, e.name, e.default_set_count, e.min_reps, e.max_reps
-		FROM workouts w
-		LEFT JOIN exercises e
-		ON e.workout_id = w.id
-		WHERE w.user_id = $1
-		AND w.id = $2
-	`, userID, workoutID)
+	rows, err := r.db.Query(baseWorkoutSelectQuery+" AND w.id = $2", userID, workoutID)
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
-	workout := &Workout{
-		Exercises: []*Exercise{},
-	}
+	var workout *Workout
 
 	for rows.Next() {
-		var exerciseID sql.NullString
-		var exerciseName sql.NullString
-		var exerciseDefaultSetCount sql.NullInt16
-		var exerciseMinReps sql.NullInt16
-		var exerciseMaxReps sql.NullInt16
-
-		if err := rows.Scan(&workout.ID, &workout.CreatedAt, &workout.Name, &exerciseID, &exerciseID, &exerciseDefaultSetCount, &exerciseMinReps, &exerciseMaxReps); err != nil {
+		wRow, err := scanWorkoutRow(rows)
+		if err != nil {
 			return nil, err
 		}
 
-		if exerciseID.Valid {
-			workout.Exercises = append(workout.Exercises, &Exercise{
-				ID:              exerciseID.String,
-				Name:            exerciseName.String,
-				DefaultSetCount: uint(exerciseDefaultSetCount.Int16),
-				MinReps:         uint(exerciseMinReps.Int16),
-				MaxReps:         uint(exerciseMaxReps.Int16),
-			})
+		if workout == nil {
+			workout = &Workout{
+				ID:        wRow.WorkoutID,
+				CreatedAt: wRow.WorkoutCreatedAt,
+				Name:      wRow.WorkoutName,
+				Exercises: []*WorkoutExercise{},
+			}
+		}
+
+		if we := workoutExerciseFromRow(wRow.WorkoutID, wRow); we != nil {
+			workout.Exercises = append(workout.Exercises, we)
 		}
 	}
 
-	if workout.ID == "" {
+	if workout == nil {
 		return nil, ErrWorkoutNotFound
 	}
 
@@ -74,51 +153,32 @@ func (r *PostgresRepository) FindByID(ctx context.Context, userID, workoutID str
 }
 
 func (r *PostgresRepository) FindAll(ctx context.Context, userID string) ([]*Workout, error) {
-	rows, err := r.db.Query(`
-		SELECT w.id, w.created_at, w.name, e.id, e.name, e.default_set_count, e.min_reps, e.max_reps
-		FROM workouts w
-		LEFT JOIN exercises e
-		ON e.workout_id = w.id
-		WHERE w.user_id = $1
-	`, userID)
+	rows, err := r.db.Query(baseWorkoutSelectQuery, userID)
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	workoutsMap := map[string]*Workout{}
 
 	for rows.Next() {
-		var workoutID string
-		var createdAt time.Time
-		var name string
-		var exerciseID sql.NullString
-		var exerciseName sql.NullString
-		var exerciseDefaultSetCount sql.NullInt16
-		var exerciseMinReps sql.NullInt16
-		var exerciseMaxReps sql.NullInt16
-
-		if err := rows.Scan(&workoutID, &createdAt, &name, &exerciseID, &exerciseName, &exerciseDefaultSetCount, &exerciseMinReps, &exerciseMaxReps); err != nil {
+		wRow, err := scanWorkoutRow(rows)
+		if err != nil {
 			return nil, err
 		}
 
-		workout, exists := workoutsMap[workoutID]
+		workout, exists := workoutsMap[wRow.WorkoutID]
 		if !exists {
 			workout = &Workout{
-				ID:        workoutID,
-				CreatedAt: createdAt,
-				Name:      name,
-				Exercises: []*Exercise{},
+				ID:        wRow.WorkoutID,
+				CreatedAt: wRow.WorkoutCreatedAt,
+				Name:      wRow.WorkoutName,
+				Exercises: []*WorkoutExercise{},
 			}
-			workoutsMap[workoutID] = workout
+			workoutsMap[wRow.WorkoutID] = workout
 		}
-		if exerciseID.Valid {
-			workout.Exercises = append(workout.Exercises, &Exercise{
-				ID:              exerciseID.String,
-				Name:            exerciseName.String,
-				DefaultSetCount: uint(exerciseDefaultSetCount.Int16),
-				MinReps:         uint(exerciseMinReps.Int16),
-				MaxReps:         uint(exerciseMaxReps.Int16),
-			})
+		if we := workoutExerciseFromRow(wRow.WorkoutID, wRow); we != nil {
+			workout.Exercises = append(workout.Exercises, we)
 		}
 	}
 
@@ -132,7 +192,7 @@ func (r *PostgresRepository) FindAll(ctx context.Context, userID string) ([]*Wor
 
 func (r *PostgresRepository) Create(ctx context.Context, userID string, w *Workout) (*Workout, error) {
 	newWorkout := &Workout{
-		Exercises: []*Exercise{},
+		Exercises: []*WorkoutExercise{},
 	}
 
 	if err := r.db.QueryRow(`
@@ -152,31 +212,40 @@ func (r *PostgresRepository) Create(ctx context.Context, userID string, w *Worko
 	return newWorkout, nil
 }
 
-func (r *PostgresRepository) CreateExercise(ctx context.Context, userID, workoutID string, e *Exercise) (*Exercise, error) {
-	newExercise := &Exercise{}
+func (r *PostgresRepository) CreateWorkoutExercise(
+	ctx context.Context,
+	userID string,
+	workoutID string,
+	exerciseID string,
+	notes *string,
+) (*WorkoutExercise, error) {
+	var insertedNotes sql.NullString
+
+	we := &WorkoutExercise{}
 
 	if err := r.db.QueryRow(`
-		INSERT INTO exercises (workout_id, name, default_set_count, min_reps, max_reps)
-		SELECT w.id, $1, $2, $3, $4
+		INSERT INTO workout_exercises (workout_id, exercise_id, position, notes)
+		SELECT 
+			w.id,
+			$1,
+			COALESCE((SELECT MAX(position) FROM workout_exercises WHERE workout_id = w.id), 0) + 1,
+			$2
 		FROM workouts w
-		WHERE w.id = $5
-		AND w.user_id = $6
-		RETURNING id, created_at, workout_id, name, default_set_count, min_reps, max_reps
-	`, e.Name, e.DefaultSetCount, e.MinReps, e.MaxReps, workoutID, userID,
-	).Scan(&newExercise.ID, &newExercise.CreatedAt, &newExercise.WorkoutID, &newExercise.Name, &newExercise.DefaultSetCount, &newExercise.MinReps, &newExercise.MaxReps); err != nil {
+		WHERE w.id = $3 AND w.user_id = $4
+		RETURNING id, workout_id, exercise_id, position, notes
+	`, exerciseID, notes, workoutID, userID,
+	).Scan(&we.ID, &we.WorkoutID, &we.Exercise.ID, &we.Position, &insertedNotes); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrWorkoutNotFound
 		}
-
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) && pgErr.Code == "23505" && pgErr.ConstraintName == "exercises_workout_id_name_key" {
-			return nil, ErrExerciseNameAlreadyExists
-		}
 		return nil, err
-
 	}
 
-	return newExercise, nil
+	if insertedNotes.Valid {
+		we.Notes = &insertedNotes.String
+	}
+
+	return we, nil
 }
 
 func (r *PostgresRepository) Delete(ctx context.Context, userID, workoutID string) error {

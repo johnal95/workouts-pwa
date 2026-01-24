@@ -1,24 +1,29 @@
 package http
 
 import (
+	exercisehttp "github.com/johnal95/workouts-pwa/internal/exercise/transport/http"
 	"github.com/johnal95/workouts-pwa/internal/workout"
 )
 
-func ToExerciseResponse(e *workout.Exercise) *ExerciseResponse {
-	return &ExerciseResponse{
-		ID:              e.ID,
-		Name:            e.Name,
-		DefaultSetCount: e.DefaultSetCount,
-		MinReps:         e.MinReps,
-		MaxReps:         e.MaxReps,
+func ToWorkoutExerciseResponse(e *workout.WorkoutExercise) *WorkoutExerciseResponse {
+	return &WorkoutExerciseResponse{
+		ID: e.ID,
+		Exercise: &exercisehttp.ExerciseResponse{
+			ID:          e.Exercise.ID,
+			Type:        e.Exercise.Type,
+			Name:        e.Exercise.Name,
+			Description: e.Exercise.Description,
+		},
+		Position: e.Position,
+		Notes:    e.Notes,
 	}
 }
 
 func ToWorkoutResponse(w *workout.Workout) *WorkoutResponse {
-	exercises := []*ExerciseResponse{}
+	exercises := []*WorkoutExerciseResponse{}
 
 	for _, e := range w.Exercises {
-		exercises = append(exercises, ToExerciseResponse(e))
+		exercises = append(exercises, ToWorkoutExerciseResponse(e))
 	}
 
 	return &WorkoutResponse{

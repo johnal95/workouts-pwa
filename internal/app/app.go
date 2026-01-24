@@ -4,9 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
 	"log/slog"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/johnal95/workouts-pwa/internal/exercise"
 	"github.com/johnal95/workouts-pwa/internal/httpx"
 	"github.com/johnal95/workouts-pwa/internal/middleware"
 	"github.com/johnal95/workouts-pwa/internal/sqlx"
@@ -43,11 +45,13 @@ func NewApplication(options *ApplicationOptions) (*Application, error) {
 
 	// Repositories
 	userRepo := user.NewPostgresRepository(pgDB)
+	exerciseRepo := exercise.NewPostgresRepository(pgDB)
 	workoutRepo := workout.NewPostgresRepository(pgDB)
 
 	// Services
 	userService := user.NewService(userRepo)
-	workoutService := workout.NewService(workoutRepo)
+	exerciseService := exercise.NewService(exerciseRepo)
+	workoutService := workout.NewService(workoutRepo, exerciseService)
 
 	// Middlewares
 	authMiddleware := middleware.NewAuthMiddleware()
@@ -58,9 +62,11 @@ func NewApplication(options *ApplicationOptions) (*Application, error) {
 	workoutHandler := workouthttp.NewHandler(parser, workoutService)
 
 	// TEMPORARY TEST USER SNIPPET
-	pgDB.Query(`DELETE FROM users`)
-	pgDB.Query(`INSERT INTO users (id, email, auth_id, auth_provider) VALUES ($1, $2, $3, $4)`,
+	_, err = pgDB.Exec(`INSERT INTO users (id, email, auth_id, auth_provider) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING`,
 		"019b4388-50ee-7f94-9caf-a8ceb54ef056", "john.doe@gmail.com", "random_auth_id", "GOOGLE")
+	if err != nil {
+		log.Fatal(err)
+	}
 	usr, _ := userService.GetUser(context.Background(), "019b4388-50ee-7f94-9caf-a8ceb54ef056")
 	fmt.Printf("TEST USER:\n%+v\n", *usr)
 

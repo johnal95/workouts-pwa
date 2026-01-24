@@ -8,10 +8,10 @@ import (
 )
 
 type PublicError struct {
-	StatusCode int
-	Message    string
-	Details    any
-	Err        error
+	StatusCode int    `json:"status_code"`
+	Message    string `json:"message"`
+	Details    any    `json:"details"`
+	Err        error  `json:"-"`
 }
 
 func (e PublicError) Error() string {
