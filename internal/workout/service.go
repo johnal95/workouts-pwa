@@ -87,7 +87,7 @@ func (s *Service) CreateWorkoutExercise(
 ) (*WorkoutExercise, error) {
 	logger := logging.Logger(ctx)
 
-	workoutExercise, err := s.repo.CreateWorkoutExercise(ctx, userID, workoutID, input.ExerciseID, input.Notes)
+	cwe, err := s.repo.CreateWorkoutExercise(ctx, userID, workoutID, input.ExerciseID, input.Notes)
 	if err != nil {
 		logger.Error("failed to create workout exercise",
 			"user_id", userID,
@@ -97,17 +97,24 @@ func (s *Service) CreateWorkoutExercise(
 		return nil, err
 	}
 
-	exercise, err := s.exerciseService.GetByID(ctx, workoutExercise.Exercise.ID)
+	exercise, err := s.exerciseService.GetByID(ctx, cwe.ExerciseID)
 	if err != nil {
 		logger.Error("failed to retrieve exercise data after creating workout exercise",
-			"id", workoutExercise.ID,
+			"id", cwe.ID,
 			"user_id", userID,
 			"workout_id", workoutID,
 			"exercise_id", input.ExerciseID,
 			"error", err)
 		return nil, err
 	}
-	workoutExercise.Exercise = *exercise
+
+	workoutExercise := &WorkoutExercise{
+		ID:        cwe.ID,
+		WorkoutID: cwe.WorkoutID,
+		Exercise:  *exercise,
+		Position:  cwe.Position,
+		Notes:     cwe.Notes,
+	}
 
 	return workoutExercise, nil
 }

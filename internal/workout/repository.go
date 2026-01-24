@@ -14,7 +14,7 @@ type Repository interface {
 	FindAll(ctx context.Context, userID string) ([]*Workout, error)
 	FindByID(ctx context.Context, userID, workoutID string) (*Workout, error)
 	Create(ctx context.Context, userID string, w *Workout) (*Workout, error)
-	CreateWorkoutExercise(ctx context.Context, userID string, workoutID string, exerciseID string, notes *string) (*WorkoutExercise, error)
+	CreateWorkoutExercise(ctx context.Context, userID string, workoutID string, exerciseID string, notes *string) (*CreatedWorkoutExercise, error)
 	Delete(ctx context.Context, userID, workoutID string) error
 }
 
@@ -212,16 +212,24 @@ func (r *PostgresRepository) Create(ctx context.Context, userID string, w *Worko
 	return newWorkout, nil
 }
 
+type CreatedWorkoutExercise struct {
+	ID         string
+	WorkoutID  string
+	ExerciseID string
+	Position   int
+	Notes      *string
+}
+
 func (r *PostgresRepository) CreateWorkoutExercise(
 	ctx context.Context,
 	userID string,
 	workoutID string,
 	exerciseID string,
 	notes *string,
-) (*WorkoutExercise, error) {
+) (*CreatedWorkoutExercise, error) {
 	var insertedNotes sql.NullString
 
-	we := &WorkoutExercise{}
+	we := &CreatedWorkoutExercise{}
 
 	if err := r.db.QueryRow(`
 		INSERT INTO workout_exercises (workout_id, exercise_id, position, notes)
@@ -234,7 +242,7 @@ func (r *PostgresRepository) CreateWorkoutExercise(
 		WHERE w.id = $3 AND w.user_id = $4
 		RETURNING id, workout_id, exercise_id, position, notes
 	`, exerciseID, notes, workoutID, userID,
-	).Scan(&we.ID, &we.WorkoutID, &we.Exercise.ID, &we.Position, &insertedNotes); err != nil {
+	).Scan(&we.ID, &we.WorkoutID, &we.ExerciseID, &we.Position, &insertedNotes); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrWorkoutNotFound
 		}
