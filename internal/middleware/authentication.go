@@ -1,8 +1,12 @@
 package middleware
 
 import (
+	"errors"
 	"net/http"
 
+	"github.com/johnal95/workouts-pwa/internal/auth"
+	"github.com/johnal95/workouts-pwa/internal/httpx"
+	"github.com/johnal95/workouts-pwa/internal/logging"
 	"github.com/johnal95/workouts-pwa/internal/requestcontext"
 )
 
@@ -15,7 +19,20 @@ func NewAuthMiddleware() *AuthMiddleware {
 
 func (m *AuthMiddleware) Authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		r = requestcontext.SetUserID(r, "019b4388-50ee-7f94-9caf-a8ceb54ef056")
+		cookie, err := r.Cookie(httpx.CookieSessionToken)
+
+		if err != nil {
+			if !errors.Is(err, http.ErrNoCookie) {
+				logging.Logger(r.Context()).Error("failed to read session cookie", "error", err)
+			}
+		} else {
+			s, err := auth.VerifySessionToken(cookie.Value)
+			if err != nil {
+				logging.Logger(r.Context()).Warn("failed to verify session cookie", "error", err)
+			} else {
+				r = requestcontext.SetUserID(r, s.UserID)
+			}
+		}
 		next.ServeHTTP(w, r)
 	})
 }

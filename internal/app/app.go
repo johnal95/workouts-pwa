@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"log"
 	"log/slog"
+	"net/http"
 
 	"github.com/go-playground/validator/v10"
+	authhttp "github.com/johnal95/workouts-pwa/internal/auth/transport/http"
 	"github.com/johnal95/workouts-pwa/internal/exercise"
 	"github.com/johnal95/workouts-pwa/internal/httpx"
 	"github.com/johnal95/workouts-pwa/internal/middleware"
@@ -21,6 +23,7 @@ type Application struct {
 	AuthMiddleware      *middleware.AuthMiddleware
 	RequestIDMiddleware *middleware.RequestIDMiddleware
 	LoggingMiddleware   *middleware.LoggingMiddleware
+	AuthHandler         *authhttp.Handler
 	WorkoutHandler      *workouthttp.Handler
 	DB                  *sql.DB
 }
@@ -59,6 +62,8 @@ func NewApplication(options *ApplicationOptions) (*Application, error) {
 	loggingMiddleware := middleware.NewLoggingMiddleware(options.Logger)
 
 	// Handlers
+
+	authHandler := authhttp.NewHandler(parser)
 	workoutHandler := workouthttp.NewHandler(parser, workoutService)
 
 	// TEMPORARY TEST USER SNIPPET
@@ -74,7 +79,12 @@ func NewApplication(options *ApplicationOptions) (*Application, error) {
 		AuthMiddleware:      authMiddleware,
 		RequestIDMiddleware: requestIDMiddleware,
 		LoggingMiddleware:   loggingMiddleware,
+		AuthHandler:         authHandler,
 		WorkoutHandler:      workoutHandler,
 		DB:                  pgDB,
 	}, nil
+}
+
+func (a *Application) HealthCheck(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
 }

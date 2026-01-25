@@ -14,6 +14,9 @@ func SetupRoutesHandler(app *app.Application) *chi.Mux {
 	r.Use(app.RequestIDMiddleware.RequestID)
 	r.Use(app.LoggingMiddleware.Logger)
 
+	r.Get("/health", app.HealthCheck)
+	r.Post("/login", app.AuthHandler.Login)
+
 	r.Group(func(r chi.Router) {
 		r.Use(app.AuthMiddleware.Authenticate)
 		r.Use(app.AuthMiddleware.RequireUser)
@@ -21,16 +24,10 @@ func SetupRoutesHandler(app *app.Application) *chi.Mux {
 		r.Get("/api/v1/workouts", app.WorkoutHandler.GetWorkouts)
 		r.Get("/api/v1/workouts/{workoutId}", app.WorkoutHandler.GetWorkoutDetails)
 		r.Post("/api/v1/workouts", app.WorkoutHandler.CreateWorkout)
-		r.Post("/api/v1/workouts/{workoutId}/exercises", app.WorkoutHandler.CreateWorkoutExercise)
 		r.Delete("/api/v1/workouts/{workoutId}", app.WorkoutHandler.DeleteWorkout)
+		r.Post("/api/v1/workouts/{workoutId}/exercises", app.WorkoutHandler.CreateWorkoutExercise)
 	})
 
-	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	})
-	r.Post("/login", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	})
 	r.Handle("GET /", http.FileServerFS(static.GetDistFS()))
 
 	return r
