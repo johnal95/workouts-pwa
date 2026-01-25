@@ -191,22 +191,46 @@ func (r *PostgresRepository) FindAll(ctx context.Context, userID string) ([]*Wor
 }
 
 func (r *PostgresRepository) Create(ctx context.Context, userID string, w *Workout) (*Workout, error) {
+	tx, err := r.db.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	// Lock parent row
+	if err := tx.QueryRow(`
+		SELECT 1
+		FROM users
+		WHERE id = $1
+		FOR UPDATE
+	`, userID,
+	).Scan(new(int)); err != nil {
+		return nil, err
+	}
+
 	newWorkout := &Workout{
 		Exercises: []*WorkoutExercise{},
 	}
 
-	if err := r.db.QueryRow(`
+	if err := tx.QueryRow(`
 		INSERT INTO workouts (user_id, name)
-		VALUES ($1, $2)
+		SELECT $1, $2
+		WHERE (SELECT COUNT(*) FROM workouts WHERE user_id = $1) < 50
 		RETURNING id, created_at, name
 	`, userID, w.Name,
 	).Scan(&newWorkout.ID, &newWorkout.CreatedAt, &newWorkout.Name); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errors.Join(ErrWorkoutLimitReached, err)
+		}
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" && pgErr.ConstraintName == "workouts_user_id_name_key" {
-			return nil, ErrWorkoutNameAlreadyExists
+			return nil, errors.Join(ErrWorkoutNameAlreadyExists, pgErr)
 		}
 		return nil, err
+	}
 
+	if err := tx.Commit(); err != nil {
+		return nil, err
 	}
 
 	return newWorkout, nil
@@ -244,7 +268,7 @@ func (r *PostgresRepository) CreateWorkoutExercise(
 	`, exerciseID, notes, workoutID, userID,
 	).Scan(&we.ID, &we.WorkoutID, &we.ExerciseID, &we.Position, &insertedNotes); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrWorkoutNotFound
+			return nil, errors.Join(ErrWorkoutNotFound, err)
 		}
 		return nil, err
 	}
