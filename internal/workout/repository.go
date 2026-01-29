@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgconn"
@@ -215,16 +216,16 @@ func (r *PostgresRepository) Create(ctx context.Context, userID string, w *Worko
 	if err := tx.QueryRow(`
 		INSERT INTO workouts (user_id, name)
 		SELECT $1, $2
-		WHERE (SELECT COUNT(*) FROM workouts WHERE user_id = $1) < 50
+		WHERE (SELECT COUNT(*) FROM workouts WHERE user_id = $1) < $3
 		RETURNING id, created_at, name
-	`, userID, w.Name,
+	`, userID, w.Name, MaxWorkoutsPerUser,
 	).Scan(&newWorkout.ID, &newWorkout.CreatedAt, &newWorkout.Name); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errors.Join(ErrWorkoutLimitReached, err)
+			return nil, fmt.Errorf("%w (max %d)", ErrWorkoutLimitReached, MaxWorkoutsPerUser)
 		}
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" && pgErr.ConstraintName == "workouts_user_id_name_key" {
-			return nil, errors.Join(ErrWorkoutNameAlreadyExists, pgErr)
+			return nil, fmt.Errorf("%w: %s", ErrWorkoutNameAlreadyExists, w.Name)
 		}
 		return nil, err
 	}
@@ -268,7 +269,7 @@ func (r *PostgresRepository) CreateWorkoutExercise(
 	`, exerciseID, notes, workoutID, userID,
 	).Scan(&we.ID, &we.WorkoutID, &we.ExerciseID, &we.Position, &insertedNotes); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errors.Join(ErrWorkoutNotFound, err)
+			return nil, fmt.Errorf("%w", ErrWorkoutNotFound)
 		}
 		return nil, err
 	}
@@ -291,7 +292,7 @@ func (r *PostgresRepository) Delete(ctx context.Context, userID, workoutID strin
 	).Scan(&w.ID, &w.CreatedAt, &w.Name)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return errors.Join(ErrWorkoutNotFound, err)
+			return fmt.Errorf("%w", ErrWorkoutNotFound)
 		}
 		return err
 	}

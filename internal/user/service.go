@@ -3,7 +3,8 @@ package user
 import (
 	"context"
 	"errors"
-	"log/slog"
+
+	"github.com/johnal95/workouts-pwa/internal/logging"
 )
 
 type Service struct {
@@ -20,9 +21,16 @@ func (s *Service) GetUser(ctx context.Context, userID string) (*User, error) {
 	user, err := s.repo.FindByID(ctx, userID)
 	if err != nil {
 		if errors.Is(err, ErrUserNotFound) {
-			slog.Warn("user not found", "user_id", userID)
+			logging.Logger(ctx).Warn(
+				"user not found",
+				"user_id", userID,
+			)
 		} else {
-			slog.Error("failed to get user by ID", "user_id", userID, "error", err)
+			logging.Logger(ctx).Error(
+				"failed to get user by ID",
+				"user_id", userID,
+				"error", err,
+			)
 		}
 		return nil, err
 	}
@@ -43,9 +51,15 @@ func (s *Service) CreateUser(ctx context.Context, input *CreateUserInput) (*User
 	})
 	if err != nil {
 		if errors.Is(err, ErrUserEmailAlreadyExists) {
-			slog.Warn("user with email already exists", "email", input.Email)
+			logging.Logger(ctx).Warn(
+				"user with email already exists",
+				"email", input.Email,
+			)
 		} else {
-			slog.Error("failed to create user", "error", err)
+			logging.Logger(ctx).Error(
+				"failed to create user",
+				"error", err,
+			)
 		}
 		return nil, err
 	}

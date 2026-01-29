@@ -23,14 +23,24 @@ func (m *AuthMiddleware) Authenticate(next http.Handler) http.Handler {
 
 		if err != nil {
 			if !errors.Is(err, http.ErrNoCookie) {
-				logging.Logger(r.Context()).Error("failed to read session cookie", "error", err)
+				logging.Logger(r.Context()).Error(
+					"failed to read session cookie",
+					"error", err,
+				)
 			}
 		} else {
 			s, err := auth.VerifySessionToken(cookie.Value)
 			if err != nil {
-				logging.Logger(r.Context()).Warn("failed to verify session cookie", "error", err)
+				logging.Logger(r.Context()).Warn(
+					"failed to verify session cookie",
+					"error", err,
+				)
 			} else {
 				r = requestcontext.SetUserID(r, s.UserID)
+				ctx := logging.WithLogger(r.Context(),
+					logging.Logger(r.Context()).With("user_id", s.UserID),
+				)
+				r = r.WithContext(ctx)
 			}
 		}
 		next.ServeHTTP(w, r)

@@ -17,12 +17,13 @@ func NewService(repo Repository) *Service {
 }
 
 func (s *Service) GetByID(ctx context.Context, exerciseID string) (*Exercise, error) {
-	logger := logging.Logger(ctx)
-
 	e, err := s.repo.FindByID(ctx, exerciseID)
 
 	if err != nil {
-		logger.Error("failed to retrieve exercise", "error", err)
+		logging.Logger(ctx).Error(
+			"failed to retrieve exercise",
+			"error", err,
+		)
 		return nil, err
 	}
 

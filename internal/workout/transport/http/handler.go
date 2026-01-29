@@ -2,6 +2,7 @@ package http
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/johnal95/workouts-pwa/internal/httpx"
@@ -60,6 +61,8 @@ func (h *Handler) CreateWorkout(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if errors.Is(err, workout.ErrWorkoutNameAlreadyExists) {
 			err = httpx.Conflict(err, "workout name must be unique", nil)
+		} else if errors.Is(err, workout.ErrWorkoutLimitReached) {
+			err = httpx.BadRequest(err, fmt.Sprintf("workout limit reached (max: %d)", workout.MaxWorkoutsPerUser), nil)
 		}
 		httpx.RespondError(w, err)
 		return
