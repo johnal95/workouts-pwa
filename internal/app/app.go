@@ -11,6 +11,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	authhttp "github.com/johnal95/workouts-pwa/internal/auth/transport/http"
 	"github.com/johnal95/workouts-pwa/internal/exercise"
+	exercisehttp "github.com/johnal95/workouts-pwa/internal/exercise/transport/http"
 	"github.com/johnal95/workouts-pwa/internal/httpx"
 	"github.com/johnal95/workouts-pwa/internal/middleware"
 	"github.com/johnal95/workouts-pwa/internal/sqlx"
@@ -24,6 +25,7 @@ type Application struct {
 	RequestIDMiddleware *middleware.RequestIDMiddleware
 	LoggingMiddleware   *middleware.LoggingMiddleware
 	AuthHandler         *authhttp.Handler
+	ExerciseHandler     *exercisehttp.Handler
 	WorkoutHandler      *workouthttp.Handler
 	DB                  *sql.DB
 }
@@ -62,8 +64,8 @@ func NewApplication(options *ApplicationOptions) (*Application, error) {
 	loggingMiddleware := middleware.NewLoggingMiddleware(options.Logger)
 
 	// Handlers
-
 	authHandler := authhttp.NewHandler(parser)
+	exerciseHandler := exercisehttp.NewHandler(parser, exerciseService)
 	workoutHandler := workouthttp.NewHandler(parser, workoutService)
 
 	// TEMPORARY TEST USER SNIPPET
@@ -80,6 +82,7 @@ func NewApplication(options *ApplicationOptions) (*Application, error) {
 		RequestIDMiddleware: requestIDMiddleware,
 		LoggingMiddleware:   loggingMiddleware,
 		AuthHandler:         authHandler,
+		ExerciseHandler:     exerciseHandler,
 		WorkoutHandler:      workoutHandler,
 		DB:                  pgDB,
 	}, nil

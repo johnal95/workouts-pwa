@@ -21,6 +21,7 @@ func SetupRoutesHandler(app *app.Application) *chi.Mux {
 		r.Use(app.AuthMiddleware.Authenticate)
 		r.Use(app.AuthMiddleware.RequireUser)
 
+		r.Get("/api/v1/exercises", app.ExerciseHandler.GetExercises)
 		r.Get("/api/v1/workouts", app.WorkoutHandler.GetWorkouts)
 		r.Get("/api/v1/workouts/{workoutId}", app.WorkoutHandler.GetWorkoutDetails)
 		r.Post("/api/v1/workouts", app.WorkoutHandler.CreateWorkout)

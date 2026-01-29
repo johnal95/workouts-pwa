@@ -105,7 +105,7 @@ func (s *Service) CreateWorkoutExercise(
 		return nil, err
 	}
 
-	exercise, err := s.exerciseService.GetByID(ctx, cwe.ExerciseID)
+	exercise, err := s.exerciseService.GetExercise(ctx, cwe.ExerciseID)
 	if err != nil {
 		logging.Logger(ctx).Error(
 			"failed to retrieve exercise data after creating workout exercise",

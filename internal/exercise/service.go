@@ -16,7 +16,7 @@ func NewService(repo Repository) *Service {
 	}
 }
 
-func (s *Service) GetByID(ctx context.Context, exerciseID string) (*Exercise, error) {
+func (s *Service) GetExercise(ctx context.Context, exerciseID string) (*Exercise, error) {
 	e, err := s.repo.FindByID(ctx, exerciseID)
 
 	if err != nil {
@@ -28,4 +28,16 @@ func (s *Service) GetByID(ctx context.Context, exerciseID string) (*Exercise, er
 	}
 
 	return e, nil
+}
+
+func (s *Service) GetExercises(ctx context.Context) ([]*Exercise, error) {
+	exercises, err := s.repo.FindAll(ctx)
+	if err != nil {
+		logging.Logger(ctx).Error(
+			"failed to retrieve exercises",
+			"error", err,
+		)
+		return nil, err
+	}
+	return exercises, nil
 }
