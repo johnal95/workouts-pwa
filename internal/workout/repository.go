@@ -149,7 +149,7 @@ func (r *PostgresRepository) FindByID(ctx context.Context, userID, workoutID str
 	}
 
 	if workout == nil {
-		return nil, ErrWorkoutNotFound
+		return nil, fmt.Errorf("%w: %s", ErrWorkoutNotFound, workoutID)
 	}
 
 	return workout, nil
@@ -271,7 +271,7 @@ func (r *PostgresRepository) CreateWorkoutExercise(
 	`, exerciseID, notes, workoutID, userID,
 	).Scan(&we.ID, &we.WorkoutID, &we.ExerciseID, &we.Position, &insertedNotes); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("%w", ErrWorkoutNotFound)
+			return nil, fmt.Errorf("%w: %s", ErrWorkoutNotFound, workoutID)
 		}
 		return nil, err
 	}
@@ -340,7 +340,7 @@ func (r *PostgresRepository) UpdateWorkoutExerciseOrder(ctx context.Context, use
 		return nil, err
 	}
 	if len(orderedIDs) != len(workoutExerciseIDOrder) {
-		return nil, fmt.Errorf("%w", ErrInvalidWorkoutExerciseIDs)
+		return nil, fmt.Errorf("%w: %s", ErrInvalidWorkoutExerciseIDs, workoutExerciseIDOrder)
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -361,7 +361,7 @@ func (r *PostgresRepository) Delete(ctx context.Context, userID, workoutID strin
 	).Scan(&w.ID, &w.CreatedAt, &w.Name)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return fmt.Errorf("%w", ErrWorkoutNotFound)
+			return fmt.Errorf("%w: %s", ErrWorkoutNotFound, workoutID)
 		}
 		return err
 	}

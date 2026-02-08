@@ -12,11 +12,13 @@ func NewLogger(env config.Environment) *slog.Logger {
 
 	if env == config.EnvDevelopment {
 		handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-			Level: slog.LevelDebug,
+			AddSource: true,
+			Level:     slog.LevelDebug,
 		})
 	} else {
 		handler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-			Level: slog.LevelInfo,
+			AddSource: true,
+			Level:     slog.LevelInfo,
 		})
 	}
 
