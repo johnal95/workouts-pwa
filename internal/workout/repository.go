@@ -120,7 +120,7 @@ func workoutExerciseFromRow(workoutID string, r *workoutRow) *WorkoutExercise {
 }
 
 func (r *PostgresRepository) FindByID(ctx context.Context, userID, workoutID string) (*Workout, error) {
-	rows, err := r.db.QueryContext(ctx, baseWorkoutSelectQuery+" AND w.id = $2", userID, workoutID)
+	rows, err := r.db.QueryContext(ctx, baseWorkoutSelectQuery+" AND w.id = $2 ORDER BY w.created_at, we.position", userID, workoutID)
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +156,7 @@ func (r *PostgresRepository) FindByID(ctx context.Context, userID, workoutID str
 }
 
 func (r *PostgresRepository) FindAll(ctx context.Context, userID string) ([]*Workout, error) {
-	rows, err := r.db.QueryContext(ctx, baseWorkoutSelectQuery, userID)
+	rows, err := r.db.QueryContext(ctx, baseWorkoutSelectQuery+" ORDER BY w.created_at, we.position", userID)
 	if err != nil {
 		return nil, err
 	}
