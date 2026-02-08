@@ -14,11 +14,10 @@ func SetupRoutesHandler(app *app.Application) *chi.Mux {
 	r.Use(app.RequestIDMiddleware.RequestID)
 	r.Use(app.LoggingMiddleware.Logger)
 
-	r.Get("/health", app.HealthCheck)
-	r.Post("/login", app.AuthHandler.Login)
-
+	// Private
 	r.Group(func(r chi.Router) {
 		r.Use(app.AuthMiddleware.Authenticate)
+		r.Use(app.LoggingMiddleware.AccessLog)
 		r.Use(app.AuthMiddleware.RequireUser)
 
 		r.Get("/api/v1/exercises", app.ExerciseHandler.GetExercises)
@@ -31,7 +30,13 @@ func SetupRoutesHandler(app *app.Application) *chi.Mux {
 		r.Delete("/api/v1/workouts/{workoutId}/exercises/{workoutExerciseId}", app.WorkoutHandler.DeleteWorkoutExercise)
 	})
 
-	r.Handle("GET /", http.FileServerFS(static.GetDistFS()))
+	// Public
+	r.Group(func(r chi.Router) {
+		r.Use(app.LoggingMiddleware.AccessLog)
+		r.Get("/health", app.HealthCheck)
+		r.Post("/login", app.AuthHandler.Login)
+		r.Handle("GET /", http.FileServerFS(static.GetDistFS()))
+	})
 
 	return r
 }
