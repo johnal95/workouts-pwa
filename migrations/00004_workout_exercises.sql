@@ -9,7 +9,7 @@ CREATE TABLE workout_exercises (
     notes       TEXT,
 
     PRIMARY KEY (id),
-    UNIQUE (workout_id, position)
+    UNIQUE (workout_id, position) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE INDEX workout_exercises_workout_id_idx ON workout_exercises(workout_id);

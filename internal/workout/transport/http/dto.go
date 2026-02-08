@@ -25,3 +25,11 @@ type CreateWorkoutExerciseRequest struct {
 	ExerciseID *string `json:"exercise_id" validate:"required"`
 	Notes      *string `json:"notes" validate:"max=500"`
 }
+
+type UpdateWorkoutExerciseOrderRequest struct {
+	WorkoutExerciseIDs []string `json:"workout_exercise_ids" validate:"min=2,max=50,unique,dive,uuid"`
+}
+
+type UpdateWorkoutExerciseOrderResponse struct {
+	WorkoutExerciseIDs []string `json:"workout_exercise_ids" validate:"min=2,max=50,unique,dive,uuid"`
+}

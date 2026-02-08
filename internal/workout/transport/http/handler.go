@@ -96,6 +96,30 @@ func (h *Handler) CreateWorkoutExercise(w http.ResponseWriter, r *http.Request) 
 	httpx.RespondJSON(w, http.StatusCreated, ToWorkoutExerciseResponse(newWorkoutExercise))
 }
 
+func (h *Handler) UpdateWorkoutExerciseOrder(w http.ResponseWriter, r *http.Request) {
+	var data UpdateWorkoutExerciseOrderRequest
+	if err := h.parser.ParseJSON(r.Body, &data); err != nil {
+		httpx.RespondError(w, err)
+		return
+	}
+
+	userID := requestcontext.MustUserID(r)
+	workoutID := r.PathValue("workoutId")
+
+	updatedOrder, err := h.service.UpdateWorkoutOrder(r.Context(), userID, workoutID, data.WorkoutExerciseIDs)
+	if err != nil {
+		if errors.Is(err, workout.ErrInvalidWorkoutExerciseIDs) {
+			err = httpx.BadRequest(err, "invalid workout exercise IDs", nil)
+		}
+		httpx.RespondError(w, err)
+		return
+	}
+
+	httpx.RespondJSON(w, http.StatusOK, UpdateWorkoutExerciseOrderResponse{
+		WorkoutExerciseIDs: updatedOrder,
+	})
+}
+
 func (h *Handler) DeleteWorkout(w http.ResponseWriter, r *http.Request) {
 	userID := requestcontext.MustUserID(r)
 	workoutID := r.PathValue("workoutId")

@@ -27,6 +27,7 @@ func SetupRoutesHandler(app *app.Application) *chi.Mux {
 		r.Post("/api/v1/workouts", app.WorkoutHandler.CreateWorkout)
 		r.Delete("/api/v1/workouts/{workoutId}", app.WorkoutHandler.DeleteWorkout)
 		r.Post("/api/v1/workouts/{workoutId}/exercises", app.WorkoutHandler.CreateWorkoutExercise)
+		r.Put("/api/v1/workouts/{workoutId}/exercises/order", app.WorkoutHandler.UpdateWorkoutExerciseOrder)
 	})
 
 	r.Handle("GET /", http.FileServerFS(static.GetDistFS()))

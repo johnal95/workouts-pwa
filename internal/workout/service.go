@@ -128,6 +128,28 @@ func (s *Service) CreateWorkoutExercise(
 	return workoutExercise, nil
 }
 
+func (s *Service) UpdateWorkoutOrder(ctx context.Context, userID, workoutID string, workoutExerciseIDOrder []string) ([]string, error) {
+	updatedWorkoutExerciseIDOrder, err := s.repo.UpdateWorkoutExerciseOrder(ctx, userID, workoutID, workoutExerciseIDOrder)
+	if err != nil {
+		if errors.Is(err, ErrInvalidWorkoutExerciseIDs) {
+			logging.Logger(ctx).Warn(
+				"invalid workout exercise IDs",
+				"id", workoutID,
+				"workout_exercise_ids", workoutExerciseIDOrder,
+			)
+		} else {
+			logging.Logger(ctx).Error(
+				"failed to update workout workout exercise order",
+				"workout_id", workoutID,
+				"error", err,
+			)
+		}
+		return nil, err
+	}
+
+	return updatedWorkoutExerciseIDOrder, nil
+}
+
 func (s *Service) DeleteWorkout(ctx context.Context, userID, workoutID string) error {
 	err := s.repo.Delete(ctx, userID, workoutID)
 	if err != nil {

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgconn"
@@ -15,7 +16,8 @@ type Repository interface {
 	FindAll(ctx context.Context, userID string) ([]*Workout, error)
 	FindByID(ctx context.Context, userID, workoutID string) (*Workout, error)
 	Create(ctx context.Context, userID string, w *Workout) (*Workout, error)
-	CreateWorkoutExercise(ctx context.Context, userID string, workoutID string, exerciseID string, notes *string) (*CreatedWorkoutExercise, error)
+	CreateWorkoutExercise(ctx context.Context, userID, workoutID, exerciseID string, notes *string) (*CreatedWorkoutExercise, error)
+	UpdateWorkoutExerciseOrder(ctx context.Context, userID, workoutID string, workoutExerciseIDOrder []string) ([]string, error)
 	Delete(ctx context.Context, userID, workoutID string) error
 }
 
@@ -118,7 +120,7 @@ func workoutExerciseFromRow(workoutID string, r *workoutRow) *WorkoutExercise {
 }
 
 func (r *PostgresRepository) FindByID(ctx context.Context, userID, workoutID string) (*Workout, error) {
-	rows, err := r.db.Query(baseWorkoutSelectQuery+" AND w.id = $2", userID, workoutID)
+	rows, err := r.db.QueryContext(ctx, baseWorkoutSelectQuery+" AND w.id = $2", userID, workoutID)
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +156,7 @@ func (r *PostgresRepository) FindByID(ctx context.Context, userID, workoutID str
 }
 
 func (r *PostgresRepository) FindAll(ctx context.Context, userID string) ([]*Workout, error) {
-	rows, err := r.db.Query(baseWorkoutSelectQuery, userID)
+	rows, err := r.db.QueryContext(ctx, baseWorkoutSelectQuery, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -199,7 +201,7 @@ func (r *PostgresRepository) Create(ctx context.Context, userID string, w *Worko
 	defer tx.Rollback()
 
 	// Lock parent row
-	if err := tx.QueryRow(`
+	if err := tx.QueryRowContext(ctx, `
 		SELECT 1
 		FROM users
 		WHERE id = $1
@@ -213,7 +215,7 @@ func (r *PostgresRepository) Create(ctx context.Context, userID string, w *Worko
 		Exercises: []*WorkoutExercise{},
 	}
 
-	if err := tx.QueryRow(`
+	if err := tx.QueryRowContext(ctx, `
 		INSERT INTO workouts (user_id, name)
 		SELECT $1, $2
 		WHERE (SELECT COUNT(*) FROM workouts WHERE user_id = $1) < $3
@@ -256,7 +258,7 @@ func (r *PostgresRepository) CreateWorkoutExercise(
 
 	we := &CreatedWorkoutExercise{}
 
-	if err := r.db.QueryRow(`
+	if err := r.db.QueryRowContext(ctx, `
 		INSERT INTO workout_exercises (workout_id, exercise_id, position, notes)
 		SELECT 
 			w.id,
@@ -281,9 +283,76 @@ func (r *PostgresRepository) CreateWorkoutExercise(
 	return we, nil
 }
 
+func (r *PostgresRepository) UpdateWorkoutExerciseOrder(ctx context.Context, userID, workoutID string, workoutExerciseIDOrder []string) ([]string, error) {
+	tx, err := r.db.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	var updateQuery strings.Builder
+	updateQuery.WriteString(`
+		WITH updated AS (
+			UPDATE workout_exercises AS we
+			SET position = v.new_position
+			FROM (VALUES
+	`)
+	updateQueryValues := []string{}
+	args := []any{workoutID, userID}
+
+	for idx, workoutExerciseID := range workoutExerciseIDOrder {
+		updateQueryValues = append(updateQueryValues, fmt.Sprintf("($%d::UUID,$%d::INTEGER)", 2*idx+3, 2*idx+4))
+		args = append(args, workoutExerciseID, idx+1)
+	}
+
+	updateQuery.WriteString(strings.Join(updateQueryValues, ","))
+
+	updateQuery.WriteString(`
+			) AS v(id, new_position), workouts w
+			WHERE we.id = v.id
+			AND w.id = $1
+			AND w.id = we.workout_id
+			AND w.user_id = $2
+			RETURNING we.id, we.position
+		)
+		SELECT id, position
+		FROM updated
+		ORDER BY position
+	`)
+
+	rows, err := tx.QueryContext(ctx, updateQuery.String(), args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	orderedIDs := []string{}
+
+	for rows.Next() {
+		var id string
+		var position int
+		if err := rows.Scan(&id, &position); err != nil {
+			return nil, err
+		}
+		orderedIDs = append(orderedIDs, id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	if len(orderedIDs) != len(workoutExerciseIDOrder) {
+		return nil, fmt.Errorf("%w", ErrInvalidWorkoutExerciseIDs)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	return orderedIDs, nil
+}
+
 func (r *PostgresRepository) Delete(ctx context.Context, userID, workoutID string) error {
 	var w Workout
-	err := r.db.QueryRow(`
+	err := r.db.QueryRowContext(ctx, `
 		DELETE FROM workouts
 		WHERE user_id = $1
 		AND id = $2
