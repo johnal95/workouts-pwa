@@ -134,3 +134,13 @@ func (h *Handler) DeleteWorkout(w http.ResponseWriter, r *http.Request) {
 
 	httpx.RespondNoContent(w)
 }
+
+func (h *Handler) DeleteWorkoutExercise(w http.ResponseWriter, r *http.Request) {
+	// TODO : Implement
+
+	// userID := requestcontext.MustUserID(r)
+	// workoutID := r.PathValue("workoutId")
+	// workoutExerciseID := r.PathValue("workoutExerciseId")
+
+	httpx.RespondNoContent(w)
+}
