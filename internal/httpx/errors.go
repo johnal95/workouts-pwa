@@ -49,6 +49,15 @@ func NotFound(err error, msg string, details any) PublicError {
 	}
 }
 
+func NotImplemented(err error, msg string, details any) PublicError {
+	return PublicError{
+		StatusCode: http.StatusNotImplemented,
+		Message:    msg,
+		Details:    details,
+		Err:        err,
+	}
+}
+
 func Conflict(err error, msg string, details any) PublicError {
 	return PublicError{
 		StatusCode: http.StatusBadRequest,

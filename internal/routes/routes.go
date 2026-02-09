@@ -28,6 +28,8 @@ func SetupRoutesHandler(app *app.Application) *chi.Mux {
 		r.Post("/api/v1/workouts/{workoutId}/exercises", app.WorkoutHandler.CreateWorkoutExercise)
 		r.Put("/api/v1/workouts/{workoutId}/exercises/order", app.WorkoutHandler.UpdateWorkoutExerciseOrder)
 		r.Delete("/api/v1/workouts/{workoutId}/exercises/{workoutExerciseId}", app.WorkoutHandler.DeleteWorkoutExercise)
+		r.Post("/api/v1/workouts/{workoutId}/logs", app.WorkoutHandler.CreateWorkoutLog)
+		r.Post("/api/v1/workouts/{workoutId}/logs/{workoutLogId}/sets", app.WorkoutHandler.CreateWorkoutLogExerciseSetLog)
 	})
 
 	// Public

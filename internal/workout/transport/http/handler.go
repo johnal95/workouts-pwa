@@ -120,6 +120,21 @@ func (h *Handler) UpdateWorkoutExerciseOrder(w http.ResponseWriter, r *http.Requ
 	})
 }
 
+func (h *Handler) CreateWorkoutLog(w http.ResponseWriter, r *http.Request) {
+	// userID := requestcontext.MustUserID(r)
+	// workoutID := r.PathValue("workoutId")
+
+	httpx.RespondError(w, httpx.NotImplemented(nil, "not yet implemented", nil))
+}
+
+func (h *Handler) CreateWorkoutLogExerciseSetLog(w http.ResponseWriter, r *http.Request) {
+	// userID := requestcontext.MustUserID(r)
+	// workoutID := r.PathValue("workoutId")
+	// workoutLogId := r.PathValue("workoutLogId")
+
+	httpx.RespondError(w, httpx.NotImplemented(nil, "not yet implemented", nil))
+}
+
 func (h *Handler) DeleteWorkout(w http.ResponseWriter, r *http.Request) {
 	userID := requestcontext.MustUserID(r)
 	workoutID := r.PathValue("workoutId")
@@ -136,11 +151,9 @@ func (h *Handler) DeleteWorkout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) DeleteWorkoutExercise(w http.ResponseWriter, r *http.Request) {
-	// TODO : Implement
-
 	// userID := requestcontext.MustUserID(r)
 	// workoutID := r.PathValue("workoutId")
 	// workoutExerciseID := r.PathValue("workoutExerciseId")
 
-	httpx.RespondNoContent(w)
+	httpx.RespondError(w, httpx.NotImplemented(nil, "not yet implemented", nil))
 }
