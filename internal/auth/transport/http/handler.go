@@ -10,12 +10,14 @@ import (
 )
 
 type Handler struct {
-	parser *httpx.Parser
+	parser  *httpx.Parser
+	service *auth.Service
 }
 
-func NewHandler(parser *httpx.Parser) *Handler {
+func NewHandler(parser *httpx.Parser, service *auth.Service) *Handler {
 	return &Handler{
-		parser: parser,
+		parser:  parser,
+		service: service,
 	}
 }
 
@@ -30,7 +32,7 @@ func NewHandler(parser *httpx.Parser) *Handler {
 //	@Failure		500	{object}	httpx.ErrorResponse
 //	@Router			/login [post]
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
-	token, err := auth.CreateSessionToken("019b4388-50ee-7f94-9caf-a8ceb54ef056", "john.doe@gmail.com")
+	token, err := h.service.CreateSessionToken("019b4388-50ee-7f94-9caf-a8ceb54ef056", "john.doe@gmail.com")
 	if err != nil {
 		logging.Logger(r.Context()).Error(
 			"failed to create session token",

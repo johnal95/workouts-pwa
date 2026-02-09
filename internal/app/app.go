@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/johnal95/workouts-pwa/internal/auth"
 	authhttp "github.com/johnal95/workouts-pwa/internal/auth/transport/http"
 	"github.com/johnal95/workouts-pwa/internal/exercise"
 	exercisehttp "github.com/johnal95/workouts-pwa/internal/exercise/transport/http"
@@ -31,8 +32,9 @@ type Application struct {
 }
 
 type ApplicationOptions struct {
-	DatabaseURL string
-	Logger      *slog.Logger
+	DatabaseURL      string
+	SessionJWTSecret string
+	Logger           *slog.Logger
 }
 
 func NewApplication(options *ApplicationOptions) (*Application, error) {
@@ -54,17 +56,18 @@ func NewApplication(options *ApplicationOptions) (*Application, error) {
 	workoutRepo := workout.NewPostgresRepository(pgDB)
 
 	// Services
+	authService := auth.NewService(options.SessionJWTSecret)
 	userService := user.NewService(userRepo)
 	exerciseService := exercise.NewService(exerciseRepo)
 	workoutService := workout.NewService(workoutRepo, exerciseService)
 
 	// Middlewares
-	authMiddleware := middleware.NewAuthMiddleware()
+	authMiddleware := middleware.NewAuthMiddleware(authService)
 	requestIDMiddleware := middleware.NewRequestIDMiddleware()
 	loggingMiddleware := middleware.NewLoggingMiddleware(options.Logger)
 
 	// Handlers
-	authHandler := authhttp.NewHandler(parser)
+	authHandler := authhttp.NewHandler(parser, authService)
 	exerciseHandler := exercisehttp.NewHandler(parser, exerciseService)
 	workoutHandler := workouthttp.NewHandler(parser, workoutService)
 

@@ -5,8 +5,19 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/johnal95/workouts-pwa/internal/config"
 )
+
+type Service struct {
+	sessionJWTSecret []byte
+	sessionDuration  time.Duration
+}
+
+func NewService(sessionJWTSecret string) *Service {
+	return &Service{
+		sessionJWTSecret: []byte(sessionJWTSecret),
+		sessionDuration:  24 * time.Hour,
+	}
+}
 
 type SessionPayload struct {
 	UserID string `json:"user_id"`
@@ -18,9 +29,7 @@ type sessionClaims struct {
 	jwt.RegisteredClaims
 }
 
-func CreateSessionToken(userID, email string) (string, error) {
-	sessionJWTSecret := []byte(config.GetSessionJWTSecret())
-
+func (s *Service) CreateSessionToken(userID, email string) (string, error) {
 	claims := sessionClaims{
 		SessionPayload: &SessionPayload{
 			UserID: userID,
@@ -28,29 +37,27 @@ func CreateSessionToken(userID, email string) (string, error) {
 		},
 		RegisteredClaims: jwt.RegisteredClaims{
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(s.sessionDuration)),
 		},
 	}
 
-	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(sessionJWTSecret)
+	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(s.sessionJWTSecret)
 }
 
-func VerifySessionToken(tokenString string) (*SessionPayload, error) {
-	sessionJWTSecret := []byte(config.GetSessionJWTSecret())
-
+func (s *Service) VerifySessionToken(tokenString string) (*SessionPayload, error) {
 	claims := &sessionClaims{}
 
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(t *jwt.Token) (any, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method")
+			return nil, fmt.Errorf("%w", ErrUnexpectedSigningMethod)
 		}
-		return sessionJWTSecret, nil
+		return s.sessionJWTSecret, nil
 	})
 	if err != nil {
 		return nil, err
 	}
 	if !token.Valid {
-		return nil, fmt.Errorf("invalid token")
+		return nil, fmt.Errorf("%w", ErrInvalidSessionToken)
 	}
 	return claims.SessionPayload, nil
 }

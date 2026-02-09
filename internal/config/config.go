@@ -11,6 +11,7 @@ type Environment string
 const (
 	EnvDevelopment = Environment("development")
 	EnvProduction  = Environment("production")
+	EnvTest        = Environment("test")
 )
 
 func getRequiredEnv(name string) string {

@@ -32,8 +32,9 @@ func main() {
 	slog.SetDefault(logger)
 
 	app, err := app.NewApplication(&app.ApplicationOptions{
-		DatabaseURL: config.GetDatabaseURL(),
-		Logger:      logger,
+		DatabaseURL:      config.GetDatabaseURL(),
+		SessionJWTSecret: config.GetSessionJWTSecret(),
+		Logger:           logger,
 	})
 	if err != nil {
 		log.Fatal(err)

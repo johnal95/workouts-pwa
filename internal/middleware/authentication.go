@@ -11,10 +11,13 @@ import (
 )
 
 type AuthMiddleware struct {
+	authService *auth.Service
 }
 
-func NewAuthMiddleware() *AuthMiddleware {
-	return &AuthMiddleware{}
+func NewAuthMiddleware(authService *auth.Service) *AuthMiddleware {
+	return &AuthMiddleware{
+		authService: authService,
+	}
 }
 
 func (m *AuthMiddleware) Authenticate(next http.Handler) http.Handler {
@@ -29,7 +32,7 @@ func (m *AuthMiddleware) Authenticate(next http.Handler) http.Handler {
 				)
 			}
 		} else {
-			s, err := auth.VerifySessionToken(cookie.Value)
+			s, err := m.authService.VerifySessionToken(cookie.Value)
 			if err != nil {
 				logging.Logger(r.Context()).Warn(
 					"failed to verify session cookie",
