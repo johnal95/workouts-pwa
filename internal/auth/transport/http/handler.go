@@ -19,6 +19,16 @@ func NewHandler(parser *httpx.Parser) *Handler {
 	}
 }
 
+// Login godoc
+//
+//	@Summary		Login
+//	@Description	Creates a session and sets a session_token cookie
+//	@Tags			auth
+//	@Produce		json
+//	@Success		200	{object}	LoginResponse	"Sets session_token cookie"
+//	@Header			200	{string}	Set-Cookie		"session_token JWT cookie"
+//	@Failure		500	{object}	httpx.ErrorResponse
+//	@Router			/login [post]
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	token, err := auth.CreateSessionToken("019b4388-50ee-7f94-9caf-a8ceb54ef056", "john.doe@gmail.com")
 	if err != nil {

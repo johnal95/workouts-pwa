@@ -6,13 +6,21 @@ import (
 	"log/slog"
 	"net/http"
 
+	_ "github.com/johnal95/workouts-pwa/docs"
 	"github.com/johnal95/workouts-pwa/internal/app"
 	"github.com/johnal95/workouts-pwa/internal/config"
 	"github.com/johnal95/workouts-pwa/internal/logging"
 	"github.com/johnal95/workouts-pwa/internal/routes"
-
 	_ "github.com/joho/godotenv/autoload"
 )
+
+//	@title			Workouts API
+//	@version		1.0
+//	@description	Workouts tracking backend API
+
+//	@securityDefinitions.apikey	sessionCookieAuth
+//	@in							cookie
+//	@name						session_token
 
 type ProgramArgs struct {
 	Port        int

@@ -1,0 +1,365 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Workouts tracking backend API",
+        "title": "Workouts API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "paths": {
+        "/api/v1/exercises": {
+            "get": {
+                "security": [
+                    {
+                        "sessionCookieAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "exercises"
+                ],
+                "summary": "List exercises",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/internal_exercise_transport_http.ExerciseResponse"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/workouts": {
+            "get": {
+                "security": [
+                    {
+                        "sessionCookieAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workouts"
+                ],
+                "summary": "List workouts",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/internal_workout_transport_http.WorkoutResponse"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "sessionCookieAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workouts"
+                ],
+                "summary": "Create workout",
+                "parameters": [
+                    {
+                        "description": "Workout payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_workout_transport_http.CreateWorkoutRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/internal_workout_transport_http.WorkoutResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/workouts/{workoutId}": {
+            "get": {
+                "security": [
+                    {
+                        "sessionCookieAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workouts"
+                ],
+                "summary": "Get workout details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workout ID",
+                        "name": "workoutId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_workout_transport_http.WorkoutResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "sessionCookieAuth": []
+                    }
+                ],
+                "tags": [
+                    "workouts"
+                ],
+                "summary": "Delete workout",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workout ID",
+                        "name": "workoutId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/login": {
+            "post": {
+                "description": "Creates a session and sets a session_token cookie",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Login",
+                "responses": {
+                    "200": {
+                        "description": "Sets session_token cookie",
+                        "schema": {
+                            "$ref": "#/definitions/internal_auth_transport_http.LoginResponse"
+                        },
+                        "headers": {
+                            "Set-Cookie": {
+                                "type": "string",
+                                "description": "session_token JWT cookie"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "github_com_johnal95_workouts-pwa_internal_exercise.ExerciseType": {
+            "type": "string",
+            "enum": [
+                "REPS",
+                "REPS_WEIGHT",
+                "DURATION"
+            ],
+            "x-enum-varnames": [
+                "ExerciseTypeReps",
+                "ExerciseTypeRepsWeight",
+                "ExerciseTypeDuration"
+            ]
+        },
+        "github_com_johnal95_workouts-pwa_internal_exercise_transport_http.ExerciseResponse": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/github_com_johnal95_workouts-pwa_internal_exercise.ExerciseType"
+                }
+            }
+        },
+        "github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "details": {},
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_auth_transport_http.LoginResponse": {
+            "type": "object",
+            "properties": {
+                "result": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_exercise_transport_http.ExerciseResponse": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/github_com_johnal95_workouts-pwa_internal_exercise.ExerciseType"
+                }
+            }
+        },
+        "internal_workout_transport_http.CreateWorkoutRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 3
+                }
+            }
+        },
+        "internal_workout_transport_http.WorkoutExerciseResponse": {
+            "type": "object",
+            "properties": {
+                "exercise": {
+                    "$ref": "#/definitions/github_com_johnal95_workouts-pwa_internal_exercise_transport_http.ExerciseResponse"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "position": {
+                    "type": "integer"
+                }
+            }
+        },
+        "internal_workout_transport_http.WorkoutResponse": {
+            "type": "object",
+            "properties": {
+                "exercises": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_workout_transport_http.WorkoutExerciseResponse"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "sessionCookieAuth": {
+            "type": "apiKey",
+            "name": "session_token",
+            "in": "cookie"
+        }
+    }
+}

@@ -1,0 +1,233 @@
+definitions:
+  github_com_johnal95_workouts-pwa_internal_exercise.ExerciseType:
+    enum:
+    - REPS
+    - REPS_WEIGHT
+    - DURATION
+    type: string
+    x-enum-varnames:
+    - ExerciseTypeReps
+    - ExerciseTypeRepsWeight
+    - ExerciseTypeDuration
+  github_com_johnal95_workouts-pwa_internal_exercise_transport_http.ExerciseResponse:
+    properties:
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      type:
+        $ref: '#/definitions/github_com_johnal95_workouts-pwa_internal_exercise.ExerciseType'
+    type: object
+  github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse:
+    properties:
+      details: {}
+      error:
+        type: string
+    type: object
+  internal_auth_transport_http.LoginResponse:
+    properties:
+      result:
+        type: string
+    type: object
+  internal_exercise_transport_http.ExerciseResponse:
+    properties:
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      type:
+        $ref: '#/definitions/github_com_johnal95_workouts-pwa_internal_exercise.ExerciseType'
+    type: object
+  internal_workout_transport_http.CreateWorkoutRequest:
+    properties:
+      name:
+        maxLength: 50
+        minLength: 3
+        type: string
+    required:
+    - name
+    type: object
+  internal_workout_transport_http.WorkoutExerciseResponse:
+    properties:
+      exercise:
+        $ref: '#/definitions/github_com_johnal95_workouts-pwa_internal_exercise_transport_http.ExerciseResponse'
+      id:
+        type: string
+      notes:
+        type: string
+      position:
+        type: integer
+    type: object
+  internal_workout_transport_http.WorkoutResponse:
+    properties:
+      exercises:
+        items:
+          $ref: '#/definitions/internal_workout_transport_http.WorkoutExerciseResponse'
+        type: array
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: Workouts tracking backend API
+  title: Workouts API
+  version: "1.0"
+paths:
+  /api/v1/exercises:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/internal_exercise_transport_http.ExerciseResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse'
+      security:
+      - sessionCookieAuth: []
+      summary: List exercises
+      tags:
+      - exercises
+  /api/v1/workouts:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/internal_workout_transport_http.WorkoutResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse'
+      security:
+      - sessionCookieAuth: []
+      summary: List workouts
+      tags:
+      - workouts
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Workout payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_workout_transport_http.CreateWorkoutRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/internal_workout_transport_http.WorkoutResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse'
+      security:
+      - sessionCookieAuth: []
+      summary: Create workout
+      tags:
+      - workouts
+  /api/v1/workouts/{workoutId}:
+    delete:
+      parameters:
+      - description: Workout ID
+        in: path
+        name: workoutId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse'
+      security:
+      - sessionCookieAuth: []
+      summary: Delete workout
+      tags:
+      - workouts
+    get:
+      parameters:
+      - description: Workout ID
+        in: path
+        name: workoutId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_workout_transport_http.WorkoutResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse'
+      security:
+      - sessionCookieAuth: []
+      summary: Get workout details
+      tags:
+      - workouts
+  /login:
+    post:
+      description: Creates a session and sets a session_token cookie
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Sets session_token cookie
+          headers:
+            Set-Cookie:
+              description: session_token JWT cookie
+              type: string
+          schema:
+            $ref: '#/definitions/internal_auth_transport_http.LoginResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse'
+      summary: Login
+      tags:
+      - auth
+securityDefinitions:
+  sessionCookieAuth:
+    in: cookie
+    name: session_token
+    type: apiKey
+swagger: "2.0"

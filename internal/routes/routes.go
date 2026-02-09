@@ -6,6 +6,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/johnal95/workouts-pwa/internal/app"
 	"github.com/johnal95/workouts-pwa/static"
+	httpswagger "github.com/swaggo/http-swagger"
 )
 
 func SetupRoutesHandler(app *app.Application) *chi.Mux {
@@ -37,6 +38,7 @@ func SetupRoutesHandler(app *app.Application) *chi.Mux {
 		r.Use(app.LoggingMiddleware.AccessLog)
 		r.Get("/health", app.HealthCheck)
 		r.Post("/login", app.AuthHandler.Login)
+		r.Get("/swagger/*", httpswagger.WrapHandler)
 		r.Handle("GET /", http.FileServerFS(static.GetDistFS()))
 	})
 
