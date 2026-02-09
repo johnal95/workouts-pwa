@@ -217,6 +217,242 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/workouts/{workoutId}/exercises": {
+            "post": {
+                "security": [
+                    {
+                        "sessionCookieAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workouts"
+                ],
+                "summary": "Create workout exercise",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workout ID",
+                        "name": "workoutId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Workout exercise payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_workout_transport_http.CreateWorkoutExerciseRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/internal_workout_transport_http.WorkoutExerciseResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/workouts/{workoutId}/exercises/order": {
+            "put": {
+                "security": [
+                    {
+                        "sessionCookieAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workouts"
+                ],
+                "summary": "Update workout exercise order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workout ID",
+                        "name": "workoutId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Workout exercise order payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_workout_transport_http.UpdateWorkoutExerciseOrderRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_workout_transport_http.UpdateWorkoutExerciseOrderResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/workouts/{workoutId}/exercises/{workoutExerciseId}": {
+            "delete": {
+                "security": [
+                    {
+                        "sessionCookieAuth": []
+                    }
+                ],
+                "tags": [
+                    "workouts"
+                ],
+                "summary": "Delete workout exercise",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workout ID",
+                        "name": "workoutId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Workout Exercise ID",
+                        "name": "workoutExerciseId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "501": {
+                        "description": "Not Implemented",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/workouts/{workoutId}/logs": {
+            "post": {
+                "security": [
+                    {
+                        "sessionCookieAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workouts"
+                ],
+                "summary": "Create workout log",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workout ID",
+                        "name": "workoutId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "501": {
+                        "description": "Not Implemented",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/workouts/{workoutId}/logs/{workoutLogId}/sets": {
+            "post": {
+                "security": [
+                    {
+                        "sessionCookieAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workouts"
+                ],
+                "summary": "Create workout log exercise set log",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workout ID",
+                        "name": "workoutId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Workout Log ID",
+                        "name": "workoutLogId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "501": {
+                        "description": "Not Implemented",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/login": {
             "post": {
                 "description": "Creates a session and sets a session_token cookie",
@@ -315,6 +551,21 @@ const docTemplate = `{
                 }
             }
         },
+        "internal_workout_transport_http.CreateWorkoutExerciseRequest": {
+            "type": "object",
+            "required": [
+                "exercise_id"
+            ],
+            "properties": {
+                "exercise_id": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string",
+                    "maxLength": 500
+                }
+            }
+        },
         "internal_workout_transport_http.CreateWorkoutRequest": {
             "type": "object",
             "required": [
@@ -325,6 +576,34 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 50,
                     "minLength": 3
+                }
+            }
+        },
+        "internal_workout_transport_http.UpdateWorkoutExerciseOrderRequest": {
+            "type": "object",
+            "properties": {
+                "workout_exercise_ids": {
+                    "type": "array",
+                    "maxItems": 50,
+                    "minItems": 2,
+                    "uniqueItems": true,
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "internal_workout_transport_http.UpdateWorkoutExerciseOrderResponse": {
+            "type": "object",
+            "properties": {
+                "workout_exercise_ids": {
+                    "type": "array",
+                    "maxItems": 50,
+                    "minItems": 2,
+                    "uniqueItems": true,
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },

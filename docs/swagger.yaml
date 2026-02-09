@@ -42,6 +42,16 @@ definitions:
       type:
         $ref: '#/definitions/github_com_johnal95_workouts-pwa_internal_exercise.ExerciseType'
     type: object
+  internal_workout_transport_http.CreateWorkoutExerciseRequest:
+    properties:
+      exercise_id:
+        type: string
+      notes:
+        maxLength: 500
+        type: string
+    required:
+    - exercise_id
+    type: object
   internal_workout_transport_http.CreateWorkoutRequest:
     properties:
       name:
@@ -50,6 +60,26 @@ definitions:
         type: string
     required:
     - name
+    type: object
+  internal_workout_transport_http.UpdateWorkoutExerciseOrderRequest:
+    properties:
+      workout_exercise_ids:
+        items:
+          type: string
+        maxItems: 50
+        minItems: 2
+        type: array
+        uniqueItems: true
+    type: object
+  internal_workout_transport_http.UpdateWorkoutExerciseOrderResponse:
+    properties:
+      workout_exercise_ids:
+        items:
+          type: string
+        maxItems: 50
+        minItems: 2
+        type: array
+        uniqueItems: true
     type: object
   internal_workout_transport_http.WorkoutExerciseResponse:
     properties:
@@ -202,6 +232,154 @@ paths:
       security:
       - sessionCookieAuth: []
       summary: Get workout details
+      tags:
+      - workouts
+  /api/v1/workouts/{workoutId}/exercises:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Workout ID
+        in: path
+        name: workoutId
+        required: true
+        type: string
+      - description: Workout exercise payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_workout_transport_http.CreateWorkoutExerciseRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/internal_workout_transport_http.WorkoutExerciseResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse'
+      security:
+      - sessionCookieAuth: []
+      summary: Create workout exercise
+      tags:
+      - workouts
+  /api/v1/workouts/{workoutId}/exercises/{workoutExerciseId}:
+    delete:
+      parameters:
+      - description: Workout ID
+        in: path
+        name: workoutId
+        required: true
+        type: string
+      - description: Workout Exercise ID
+        in: path
+        name: workoutExerciseId
+        required: true
+        type: string
+      responses:
+        "501":
+          description: Not Implemented
+          schema:
+            $ref: '#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse'
+      security:
+      - sessionCookieAuth: []
+      summary: Delete workout exercise
+      tags:
+      - workouts
+  /api/v1/workouts/{workoutId}/exercises/order:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Workout ID
+        in: path
+        name: workoutId
+        required: true
+        type: string
+      - description: Workout exercise order payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_workout_transport_http.UpdateWorkoutExerciseOrderRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_workout_transport_http.UpdateWorkoutExerciseOrderResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse'
+      security:
+      - sessionCookieAuth: []
+      summary: Update workout exercise order
+      tags:
+      - workouts
+  /api/v1/workouts/{workoutId}/logs:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Workout ID
+        in: path
+        name: workoutId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "501":
+          description: Not Implemented
+          schema:
+            $ref: '#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse'
+      security:
+      - sessionCookieAuth: []
+      summary: Create workout log
+      tags:
+      - workouts
+  /api/v1/workouts/{workoutId}/logs/{workoutLogId}/sets:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Workout ID
+        in: path
+        name: workoutId
+        required: true
+        type: string
+      - description: Workout Log ID
+        in: path
+        name: workoutLogId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "501":
+          description: Not Implemented
+          schema:
+            $ref: '#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse'
+      security:
+      - sessionCookieAuth: []
+      summary: Create workout log exercise set log
       tags:
       - workouts
   /login:

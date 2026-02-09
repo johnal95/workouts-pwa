@@ -104,6 +104,20 @@ func (h *Handler) CreateWorkout(w http.ResponseWriter, r *http.Request) {
 	httpx.RespondJSON(w, http.StatusCreated, ToWorkoutResponse(newWorkout))
 }
 
+// CreateWorkoutExercise godoc
+//
+//	@Summary	Create workout exercise
+//	@Tags		workouts
+//	@Accept		json
+//	@Produce	json
+//	@Security	sessionCookieAuth
+//	@Param		workoutId	path		string							true	"Workout ID"
+//	@Param		request		body		CreateWorkoutExerciseRequest	true	"Workout exercise payload"
+//	@Success	201			{object}	WorkoutExerciseResponse
+//	@Failure	400			{object}	httpx.ErrorResponse
+//	@Failure	401			{object}	httpx.ErrorResponse
+//	@Failure	404			{object}	httpx.ErrorResponse
+//	@Router		/api/v1/workouts/{workoutId}/exercises [post]
 func (h *Handler) CreateWorkoutExercise(w http.ResponseWriter, r *http.Request) {
 	var data CreateWorkoutExerciseRequest
 	if err := h.parser.ParseJSON(r.Body, &data); err != nil {
@@ -129,6 +143,19 @@ func (h *Handler) CreateWorkoutExercise(w http.ResponseWriter, r *http.Request) 
 	httpx.RespondJSON(w, http.StatusCreated, ToWorkoutExerciseResponse(newWorkoutExercise))
 }
 
+// UpdateWorkoutExerciseOrder godoc
+//
+//	@Summary	Update workout exercise order
+//	@Tags		workouts
+//	@Accept		json
+//	@Produce	json
+//	@Security	sessionCookieAuth
+//	@Param		workoutId	path		string								true	"Workout ID"
+//	@Param		request		body		UpdateWorkoutExerciseOrderRequest	true	"Workout exercise order payload"
+//	@Success	200			{object}	UpdateWorkoutExerciseOrderResponse
+//	@Failure	400			{object}	httpx.ErrorResponse
+//	@Failure	401			{object}	httpx.ErrorResponse
+//	@Router		/api/v1/workouts/{workoutId}/exercises/order [put]
 func (h *Handler) UpdateWorkoutExerciseOrder(w http.ResponseWriter, r *http.Request) {
 	var data UpdateWorkoutExerciseOrderRequest
 	if err := h.parser.ParseJSON(r.Body, &data); err != nil {
@@ -153,6 +180,16 @@ func (h *Handler) UpdateWorkoutExerciseOrder(w http.ResponseWriter, r *http.Requ
 	})
 }
 
+// CreateWorkoutLog godoc
+//
+//	@Summary	Create workout log
+//	@Tags		workouts
+//	@Accept		json
+//	@Produce	json
+//	@Security	sessionCookieAuth
+//	@Param		workoutId	path		string	true	"Workout ID"
+//	@Failure	501			{object}	httpx.ErrorResponse
+//	@Router		/api/v1/workouts/{workoutId}/logs [post]
 func (h *Handler) CreateWorkoutLog(w http.ResponseWriter, r *http.Request) {
 	// userID := requestcontext.MustUserID(r)
 	// workoutID := r.PathValue("workoutId")
@@ -160,6 +197,17 @@ func (h *Handler) CreateWorkoutLog(w http.ResponseWriter, r *http.Request) {
 	httpx.RespondError(w, httpx.NotImplemented(nil, "not yet implemented", nil))
 }
 
+// CreateWorkoutLogExerciseSetLog godoc
+//
+//	@Summary	Create workout log exercise set log
+//	@Tags		workouts
+//	@Accept		json
+//	@Produce	json
+//	@Security	sessionCookieAuth
+//	@Param		workoutId		path		string	true	"Workout ID"
+//	@Param		workoutLogId	path		string	true	"Workout Log ID"
+//	@Failure	501				{object}	httpx.ErrorResponse
+//	@Router		/api/v1/workouts/{workoutId}/logs/{workoutLogId}/sets [post]
 func (h *Handler) CreateWorkoutLogExerciseSetLog(w http.ResponseWriter, r *http.Request) {
 	// userID := requestcontext.MustUserID(r)
 	// workoutID := r.PathValue("workoutId")
@@ -193,6 +241,15 @@ func (h *Handler) DeleteWorkout(w http.ResponseWriter, r *http.Request) {
 	httpx.RespondNoContent(w)
 }
 
+// DeleteWorkoutExercise godoc
+//
+//	@Summary	Delete workout exercise
+//	@Tags		workouts
+//	@Security	sessionCookieAuth
+//	@Param		workoutId			path		string	true	"Workout ID"
+//	@Param		workoutExerciseId	path		string	true	"Workout Exercise ID"
+//	@Failure	501					{object}	httpx.ErrorResponse
+//	@Router		/api/v1/workouts/{workoutId}/exercises/{workoutExerciseId} [delete]
 func (h *Handler) DeleteWorkoutExercise(w http.ResponseWriter, r *http.Request) {
 	// userID := requestcontext.MustUserID(r)
 	// workoutID := r.PathValue("workoutId")
