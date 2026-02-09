@@ -6,7 +6,7 @@
   "packageManager": "pnpm@10.26.1",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build --emptyOutDir",
+    "build": "vite build --emptyOutDir && tsc -b",
     "preview": "vite preview"
   },
   "dependencies": {
