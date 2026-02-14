@@ -246,14 +246,24 @@ func (h *Handler) DeleteWorkout(w http.ResponseWriter, r *http.Request) {
 //	@Summary	Delete workout exercise
 //	@Tags		workouts
 //	@Security	sessionCookieAuth
-//	@Param		workoutId			path		string	true	"Workout ID"
-//	@Param		workoutExerciseId	path		string	true	"Workout Exercise ID"
-//	@Failure	501					{object}	httpx.ErrorResponse
+//	@Param		workoutId			path	string	true	"Workout ID"
+//	@Param		workoutExerciseId	path	string	true	"Workout Exercise ID"
+//	@Success	204
+//	@Failure	404	{object}	httpx.ErrorResponse
+//	@Failure	500	{object}	httpx.ErrorResponse
 //	@Router		/api/v1/workouts/{workoutId}/exercises/{workoutExerciseId} [delete]
 func (h *Handler) DeleteWorkoutExercise(w http.ResponseWriter, r *http.Request) {
-	// userID := requestcontext.MustUserID(r)
-	// workoutID := r.PathValue("workoutId")
-	// workoutExerciseID := r.PathValue("workoutExerciseId")
+	userID := requestcontext.MustUserID(r)
+	workoutID := r.PathValue("workoutId")
+	workoutExerciseID := r.PathValue("workoutExerciseId")
 
-	httpx.RespondError(w, httpx.NotImplemented(nil, "not yet implemented", nil))
+	if err := h.service.DeleteWorkoutExercise(r.Context(), userID, workoutID, workoutExerciseID); err != nil {
+		if errors.Is(err, workout.ErrWorkoutExerciseNotFound) {
+			err = httpx.NotFound(err, "workout exercise not found", nil)
+		}
+		httpx.RespondError(w, err)
+		return
+	}
+
+	httpx.RespondNoContent(w)
 }

@@ -168,3 +168,23 @@ func (s *Service) DeleteWorkout(ctx context.Context, userID, workoutID string) e
 	}
 	return nil
 }
+
+func (s *Service) DeleteWorkoutExercise(ctx context.Context, userID, workoutID, workoutExerciseID string) error {
+	err := s.repo.DeleteWorkoutExercise(ctx, userID, workoutID, workoutExerciseID)
+	if err != nil {
+		if errors.Is(err, ErrWorkoutExerciseNotFound) {
+			logging.Logger(ctx).Warn(
+				"workout exercise not found",
+				"workout_id", workoutID,
+				"workout_exercise_id", workoutExerciseID,
+			)
+		} else {
+			logging.Logger(ctx).Error(
+				"failed to delete workout exercise",
+				"error", err,
+			)
+		}
+		return err
+	}
+	return nil
+}

@@ -19,6 +19,7 @@ type Repository interface {
 	CreateWorkoutExercise(ctx context.Context, userID, workoutID, exerciseID string, notes *string) (*CreatedWorkoutExercise, error)
 	UpdateWorkoutExerciseOrder(ctx context.Context, userID, workoutID string, workoutExerciseIDOrder []string) ([]string, error)
 	Delete(ctx context.Context, userID, workoutID string) error
+	DeleteWorkoutExercise(ctx context.Context, userID, workoutID, workoutExerciseID string) error
 }
 
 type PostgresRepository struct {
@@ -351,19 +352,47 @@ func (r *PostgresRepository) UpdateWorkoutExerciseOrder(ctx context.Context, use
 }
 
 func (r *PostgresRepository) Delete(ctx context.Context, userID, workoutID string) error {
-	var w Workout
-	err := r.db.QueryRowContext(ctx, `
+	result, err := r.db.ExecContext(ctx, `
 		DELETE FROM workouts
 		WHERE user_id = $1
 		AND id = $2
-		RETURNING id, created_at, name
 	`, userID, workoutID,
-	).Scan(&w.ID, &w.CreatedAt, &w.Name)
+	)
+	if err != nil {
+		return err
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return fmt.Errorf("%w: %s", ErrWorkoutNotFound, workoutID)
+	}
+	return nil
+}
+
+func (r *PostgresRepository) DeleteWorkoutExercise(ctx context.Context, userID, workoutID, workoutExerciseID string) error {
+	result, err := r.db.ExecContext(ctx, `
+		DELETE FROM workout_exercises we
+		USING workouts w
+		WHERE w.id = we.workout_id
+		AND w.user_id = $1
+		AND w.id = $2
+		AND we.id = $3
+	`, userID, workoutID, workoutExerciseID,
+	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return fmt.Errorf("%w: %s", ErrWorkoutNotFound, workoutID)
 		}
 		return err
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return fmt.Errorf("%w: %s", ErrWorkoutExerciseNotFound, workoutExerciseID)
 	}
 	return nil
 }
