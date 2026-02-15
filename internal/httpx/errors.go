@@ -40,6 +40,15 @@ func BadRequest(err error, msg string, details any) PublicError {
 	}
 }
 
+func Unauthorized(err error, msg string, details any) PublicError {
+	return PublicError{
+		StatusCode: http.StatusUnauthorized,
+		Message:    msg,
+		Details:    details,
+		Err:        err,
+	}
+}
+
 func NotFound(err error, msg string, details any) PublicError {
 	return PublicError{
 		StatusCode: http.StatusNotFound,

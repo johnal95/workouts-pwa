@@ -52,6 +52,13 @@ definitions:
     required:
     - exercise_id
     type: object
+  internal_workout_transport_http.CreateWorkoutLogRequest:
+    properties:
+      date:
+        type: string
+    required:
+    - date
+    type: object
   internal_workout_transport_http.CreateWorkoutRequest:
     properties:
       name:
@@ -91,6 +98,15 @@ definitions:
         type: string
       position:
         type: integer
+    type: object
+  internal_workout_transport_http.WorkoutLogResponse:
+    properties:
+      date:
+        type: string
+      id:
+        type: string
+      workout_id:
+        type: string
     type: object
   internal_workout_transport_http.WorkoutResponse:
     properties:
@@ -290,6 +306,10 @@ paths:
       responses:
         "204":
           description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse'
         "404":
           description: Not Found
           schema:
@@ -349,11 +369,29 @@ paths:
         name: workoutId
         required: true
         type: string
+      - description: Workout log payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_workout_transport_http.CreateWorkoutLogRequest'
       produces:
       - application/json
       responses:
-        "501":
-          description: Not Implemented
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/internal_workout_transport_http.WorkoutLogResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse'
+        "404":
+          description: Not Found
           schema:
             $ref: '#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse'
       security:

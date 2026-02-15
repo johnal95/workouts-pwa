@@ -6,6 +6,12 @@ import (
 	"github.com/johnal95/workouts-pwa/internal/exercise"
 )
 
+type WorkoutLog struct {
+	ID        string
+	WorkoutID string
+	Date      time.Time
+}
+
 type WorkoutExercise struct {
 	ID        string
 	WorkoutID string

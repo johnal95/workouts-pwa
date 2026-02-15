@@ -17,6 +17,7 @@ type Repository interface {
 	FindByID(ctx context.Context, userID, workoutID string) (*Workout, error)
 	Create(ctx context.Context, userID string, w *Workout) (*Workout, error)
 	CreateWorkoutExercise(ctx context.Context, userID, workoutID, exerciseID string, notes *string) (*CreatedWorkoutExercise, error)
+	CreateWorkoutLog(ctx context.Context, userID, workoutID string, date *time.Time) (*WorkoutLog, error)
 	UpdateWorkoutExerciseOrder(ctx context.Context, userID, workoutID string, workoutExerciseIDOrder []string) ([]string, error)
 	Delete(ctx context.Context, userID, workoutID string) error
 	DeleteWorkoutExercise(ctx context.Context, userID, workoutID, workoutExerciseID string) error
@@ -282,6 +283,31 @@ func (r *PostgresRepository) CreateWorkoutExercise(
 	}
 
 	return we, nil
+}
+
+func (r *PostgresRepository) CreateWorkoutLog(
+	ctx context.Context,
+	userID string,
+	workoutID string,
+	date *time.Time,
+) (*WorkoutLog, error) {
+	wl := &WorkoutLog{}
+
+	if err := r.db.QueryRowContext(ctx, `
+		INSERT INTO workout_logs (workout_id, date)
+		SELECT w.id, $1
+		FROM workouts w
+		WHERE w.id = $2 AND w.user_id = $3
+		RETURNING id, workout_id, date
+	`, date, workoutID, userID,
+	).Scan(&wl.ID, &wl.WorkoutID, &wl.Date); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("%w: %s", ErrWorkoutNotFound, workoutID)
+		}
+		return nil, err
+	}
+
+	return wl, nil
 }
 
 func (r *PostgresRepository) UpdateWorkoutExerciseOrder(ctx context.Context, userID, workoutID string, workoutExerciseIDOrder []string) ([]string, error) {

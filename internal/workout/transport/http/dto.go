@@ -17,6 +17,12 @@ type WorkoutResponse struct {
 	Exercises []*WorkoutExerciseResponse `json:"exercises"`
 }
 
+type WorkoutLogResponse struct {
+	ID        string `json:"id"`
+	WorkoutID string `json:"workout_id"`
+	Date      string `json:"date"`
+}
+
 type CreateWorkoutRequest struct {
 	Name *string `json:"name" validate:"required,min=3,max=50"`
 }
@@ -24,6 +30,10 @@ type CreateWorkoutRequest struct {
 type CreateWorkoutExerciseRequest struct {
 	ExerciseID *string `json:"exercise_id" validate:"required"`
 	Notes      *string `json:"notes" validate:"max=500"`
+}
+
+type CreateWorkoutLogRequest struct {
+	Date *string `json:"date" validate:"required,datetime=2006-01-02"`
 }
 
 type UpdateWorkoutExerciseOrderRequest struct {

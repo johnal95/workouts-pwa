@@ -368,6 +368,12 @@ const docTemplate = `{
                     "204": {
                         "description": "No Content"
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse"
+                        }
+                    },
                     "404": {
                         "description": "Not Found",
                         "schema": {
@@ -407,11 +413,38 @@ const docTemplate = `{
                         "name": "workoutId",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "Workout log payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_workout_transport_http.CreateWorkoutLogRequest"
+                        }
                     }
                 ],
                 "responses": {
-                    "501": {
-                        "description": "Not Implemented",
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/internal_workout_transport_http.WorkoutLogResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/github_com_johnal95_workouts-pwa_internal_httpx.ErrorResponse"
                         }
@@ -575,6 +608,17 @@ const docTemplate = `{
                 }
             }
         },
+        "internal_workout_transport_http.CreateWorkoutLogRequest": {
+            "type": "object",
+            "required": [
+                "date"
+            ],
+            "properties": {
+                "date": {
+                    "type": "string"
+                }
+            }
+        },
         "internal_workout_transport_http.CreateWorkoutRequest": {
             "type": "object",
             "required": [
@@ -630,6 +674,20 @@ const docTemplate = `{
                 },
                 "position": {
                     "type": "integer"
+                }
+            }
+        },
+        "internal_workout_transport_http.WorkoutLogResponse": {
+            "type": "object",
+            "properties": {
+                "date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "workout_id": {
+                    "type": "string"
                 }
             }
         },

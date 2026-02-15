@@ -55,8 +55,7 @@ func (m *AuthMiddleware) RequireUser(next http.Handler) http.Handler {
 		if _, exists := requestcontext.UserID(r); exists {
 			next.ServeHTTP(w, r)
 		} else {
-			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte("Unauthorized"))
+			httpx.RespondError(w, httpx.Unauthorized(nil, "unauthorized", nil))
 		}
 	})
 }

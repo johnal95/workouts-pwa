@@ -3,6 +3,7 @@ package workout
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/johnal95/workouts-pwa/internal/exercise"
 	"github.com/johnal95/workouts-pwa/internal/logging"
@@ -126,6 +127,39 @@ func (s *Service) CreateWorkoutExercise(
 	}
 
 	return workoutExercise, nil
+}
+
+type CreateWorkoutLogInput struct {
+	Date string
+}
+
+func (s *Service) CreateWorkoutLog(
+	ctx context.Context,
+	userID string,
+	workoutID string,
+	input *CreateWorkoutLogInput,
+) (*WorkoutLog, error) {
+	date, err := time.Parse(time.DateOnly, input.Date)
+	if err != nil {
+		logging.Logger(ctx).Error(
+			"failed to parse date",
+			"date", input.Date,
+			"error", err,
+		)
+		return nil, err
+	}
+
+	wl, err := s.repo.CreateWorkoutLog(ctx, userID, workoutID, &date)
+	if err != nil {
+		logging.Logger(ctx).Error(
+			"failed to create workout log",
+			"workout_id", workoutID,
+			"error", err,
+		)
+		return nil, err
+	}
+
+	return wl, nil
 }
 
 func (s *Service) UpdateWorkoutOrder(ctx context.Context, userID, workoutID string, workoutExerciseIDOrder []string) ([]string, error) {

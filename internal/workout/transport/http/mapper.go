@@ -1,9 +1,19 @@
 package http
 
 import (
+	"time"
+
 	exercisehttp "github.com/johnal95/workouts-pwa/internal/exercise/transport/http"
 	"github.com/johnal95/workouts-pwa/internal/workout"
 )
+
+func ToWorkoutLogResponse(w *workout.WorkoutLog) *WorkoutLogResponse {
+	return &WorkoutLogResponse{
+		ID:        w.ID,
+		WorkoutID: w.WorkoutID,
+		Date:      w.Date.Format(time.DateOnly),
+	}
+}
 
 func ToWorkoutExerciseResponse(e *workout.WorkoutExercise) *WorkoutExerciseResponse {
 	return &WorkoutExerciseResponse{

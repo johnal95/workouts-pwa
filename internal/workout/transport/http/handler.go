@@ -187,14 +187,35 @@ func (h *Handler) UpdateWorkoutExerciseOrder(w http.ResponseWriter, r *http.Requ
 //	@Accept		json
 //	@Produce	json
 //	@Security	sessionCookieAuth
-//	@Param		workoutId	path		string	true	"Workout ID"
-//	@Failure	501			{object}	httpx.ErrorResponse
+//	@Param		workoutId	path		string					true	"Workout ID"
+//	@Param		request		body		CreateWorkoutLogRequest	true	"Workout log payload"
+//	@Success	201			{object}	WorkoutLogResponse
+//	@Failure	400			{object}	httpx.ErrorResponse
+//	@Failure	401			{object}	httpx.ErrorResponse
+//	@Failure	404			{object}	httpx.ErrorResponse
 //	@Router		/api/v1/workouts/{workoutId}/logs [post]
 func (h *Handler) CreateWorkoutLog(w http.ResponseWriter, r *http.Request) {
-	// userID := requestcontext.MustUserID(r)
-	// workoutID := r.PathValue("workoutId")
+	var data CreateWorkoutLogRequest
+	if err := h.parser.ParseJSON(r.Body, &data); err != nil {
+		httpx.RespondError(w, err)
+		return
+	}
 
-	httpx.RespondError(w, httpx.NotImplemented(nil, "not yet implemented", nil))
+	userID := requestcontext.MustUserID(r)
+	workoutID := r.PathValue("workoutId")
+
+	newWorkoutLog, err := h.service.CreateWorkoutLog(r.Context(), userID, workoutID, &workout.CreateWorkoutLogInput{
+		Date: *data.Date,
+	})
+	if err != nil {
+		if errors.Is(err, workout.ErrWorkoutNotFound) {
+			err = httpx.NotFound(err, "workout not found", nil)
+		}
+		httpx.RespondError(w, err)
+		return
+	}
+
+	httpx.RespondJSON(w, http.StatusCreated, ToWorkoutLogResponse(newWorkoutLog))
 }
 
 // CreateWorkoutLogExerciseSetLog godoc
@@ -249,6 +270,7 @@ func (h *Handler) DeleteWorkout(w http.ResponseWriter, r *http.Request) {
 //	@Param		workoutId			path	string	true	"Workout ID"
 //	@Param		workoutExerciseId	path	string	true	"Workout Exercise ID"
 //	@Success	204
+//	@Failure	401	{object}	httpx.ErrorResponse
 //	@Failure	404	{object}	httpx.ErrorResponse
 //	@Failure	500	{object}	httpx.ErrorResponse
 //	@Router		/api/v1/workouts/{workoutId}/exercises/{workoutExerciseId} [delete]
